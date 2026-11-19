@@ -1,0 +1,68 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BIGVIZOV — Модель квантового нарушителя</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <script defer src="{% static 'core/js/main.js' %}"></script>
+</head>
+<body>
+    <main class="page">
+        <section class="model" aria-labelledby="model-heading">
+            <header class="model__header">
+                <h1 id="model-heading">Модель квантового нарушителя</h1>
+            </header>
+
+            <div class="model__body">
+                <label class="import-area" for="model-file" id="import-area">
+                    <span id="import-label">Импорт</span>
+                    <input id="model-file" type="file" class="visually-hidden">
+                </label>
+
+                <div class="work-row">
+                    <fieldset class="attack-modes">
+                        <legend class="visually-hidden">Тип атаки</legend>
+
+                        <label class="attack-option">
+                            <input type="radio" name="attack_mode" value="classical" checked>
+                            <span class="attack-option__content">
+                                <span class="attack-option__title">Атака с использованием классических методов</span>
+                                <span class="attack-option__description">«Классический атакующий без применения квантовых алгоритмов»</span>
+                            </span>
+                        </label>
+
+                        <label class="attack-option">
+                            <input type="radio" name="attack_mode" value="quantum">
+                            <span class="attack-option__content">
+                                <span class="attack-option__title">Атака с использованием квантовых устройств</span>
+                                <span class="attack-option__description">«Нарушитель с квантовыми алгоритмами (алгоритм Шора/Гровера)»</span>
+                            </span>
+                        </label>
+                    </fieldset>
+
+                    <div class="analyse">
+                        <button type="button" class="analyse__button" id="analyse-button">Запустить анализ</button>
+                        <p class="analyse__feedback" id="analyse-feedback" role="status" hidden></p>
+                    </div>
+                </div>
+
+                <div class="settings">
+                    <label class="setting">
+                        <input class="setting__input" type="checkbox" name="fstec" checked>
+                        <span class="setting__switch" aria-hidden="true"></span>
+                        <span class="setting__text">Соответствие стандартам ФСТЭК</span>
+                    </label>
+
+                    <label class="setting setting--records">
+                        <input class="setting__input" type="checkbox" name="large_dataset">
+                        <span class="setting__switch" aria-hidden="true"></span>
+                        <span class="setting__text">Хранится более ста тысяч записей субъектов<br class="desktop-break"> персональных данных</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
