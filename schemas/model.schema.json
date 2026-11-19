@@ -1,0 +1,2687 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sirius:analyzer:model:1",
+  "title": "Finite component-system logical analyzer snapshot",
+  "description": "Documentation schema. Runtime analyzer.model.validate_model is authoritative and performs semantic cross-reference/type/conflict checks. JSON Schema is not automatically executed by the analyzer.",
+  "type": "object",
+  "required": [
+    "state",
+    "profile",
+    "nodes",
+    "facts",
+    "requirements"
+  ],
+  "properties": {
+    "state": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nodes": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    },
+    "completeness": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/completeness"
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/transition"
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "mutable": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ground_key"
+      }
+    },
+    "action_catalog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "diff": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "assumptions": {
+      "type": "array"
+    },
+    "source_graph": {
+      "$ref": "#/$defs/graph"
+    },
+    "raw_graph": {
+      "$ref": "#/$defs/graph"
+    },
+    "import_issues": {
+      "type": "array"
+    },
+    "comparison": {
+      "type": "object"
+    },
+    "profile_source": {
+      "type": "string"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permission"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "dependency_provenance": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sheet": {
+          "type": "string"
+        },
+        "cell": {
+          "type": "string"
+        },
+        "json_key": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "imported",
+            "declared",
+            "demo_assumption",
+            "derived"
+          ]
+        },
+        "raw_value": {},
+        "original": {},
+        "transformation": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "integer"
+        },
+        "pc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "change",
+              "channel",
+              "component",
+              "data",
+              "event",
+              "function",
+              "key",
+              "role",
+              "subject",
+              "unknown"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "fact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "acl"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "enum": [
+                    "administer",
+                    "execute",
+                    "read",
+                    "write"
+                  ]
+                }
+              ],
+              "items": false,
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "approved"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "authenticates"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "backup"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "changed"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "channel"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "cover"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "crypto_algorithm"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "crypto_bits"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "crypto_function"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "crypto_protected"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "enabled"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "event_possible"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "evidence"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "executes"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "failure_mode"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "has_role"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "healthy"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "horizon_valid"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "independent"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "integrity"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "key_accessible"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "key_required"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "logger"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "material_available"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "observes"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "owns"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "parameter"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "physical"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "present"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "quantum_capable"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "readable"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "stores"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "transition_enabled"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "transport_enabled"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [
+            "predicate",
+            "args",
+            "value"
+          ],
+          "properties": {
+            "predicate": {
+              "const": "trusted_boot"
+            },
+            "args": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "value": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                true,
+                false
+              ]
+            },
+            "provenance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/provenance"
+              }
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "ground_key": {
+      "type": "object",
+      "required": [
+        "predicate",
+        "args"
+      ],
+      "properties": {
+        "predicate": {
+          "enum": [
+            "acl",
+            "approved",
+            "authenticates",
+            "backup",
+            "changed",
+            "channel",
+            "cover",
+            "crypto_algorithm",
+            "crypto_bits",
+            "crypto_function",
+            "crypto_protected",
+            "enabled",
+            "event_possible",
+            "evidence",
+            "executes",
+            "failure_mode",
+            "has_role",
+            "healthy",
+            "horizon_valid",
+            "independent",
+            "integrity",
+            "key_accessible",
+            "key_required",
+            "logger",
+            "material_available",
+            "observes",
+            "owns",
+            "parameter",
+            "physical",
+            "present",
+            "quantum_capable",
+            "readable",
+            "stores",
+            "transition_enabled",
+            "transport_enabled",
+            "trusted_boot"
+          ]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "completeness": {
+      "type": "object",
+      "required": [
+        "predicate",
+        "args_prefix",
+        "complete"
+      ],
+      "properties": {
+        "predicate": {
+          "enum": [
+            "acl",
+            "approved",
+            "authenticates",
+            "backup",
+            "changed",
+            "channel",
+            "cover",
+            "crypto_algorithm",
+            "crypto_bits",
+            "crypto_function",
+            "crypto_protected",
+            "dependencies",
+            "enabled",
+            "event_possible",
+            "evidence",
+            "executes",
+            "failure_mode",
+            "has_role",
+            "healthy",
+            "horizon_valid",
+            "independent",
+            "integrity",
+            "key_accessible",
+            "key_required",
+            "logger",
+            "material_available",
+            "observes",
+            "owns",
+            "parameter",
+            "physical",
+            "present",
+            "quantum_capable",
+            "readable",
+            "stores",
+            "transition_enabled",
+            "transitions",
+            "transport_enabled",
+            "trusted_boot"
+          ]
+        },
+        "args_prefix": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "dependency": {
+      "type": "object",
+      "properties": {
+        "all": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "predicate",
+        "args"
+      ],
+      "properties": {
+        "predicate": {
+          "enum": [
+            "acl",
+            "approved",
+            "authenticates",
+            "available",
+            "backup",
+            "changed",
+            "channel",
+            "cover",
+            "crypto_algorithm",
+            "crypto_bits",
+            "crypto_function",
+            "crypto_protected",
+            "enabled",
+            "event_possible",
+            "evidence",
+            "executes",
+            "failure_mode",
+            "has_role",
+            "healthy",
+            "horizon_valid",
+            "independent",
+            "integrity",
+            "key_accessible",
+            "key_required",
+            "logger",
+            "material_available",
+            "observes",
+            "owns",
+            "parameter",
+            "physical",
+            "present",
+            "quantum_capable",
+            "readable",
+            "stores",
+            "transition_enabled",
+            "transport",
+            "transport_enabled",
+            "trusted_boot"
+          ]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "expected": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "transition": {
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "target",
+        "subject",
+        "operation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "via": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "enum": [
+            "administer",
+            "execute",
+            "read",
+            "write"
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "access",
+            "flow"
+          ]
+        },
+        "value": {
+          "enum": [
+            "TRUE",
+            "FALSE",
+            "UNKNOWN"
+          ]
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        },
+        "switch_subject": {
+          "enum": [
+            false,
+            null
+          ]
+        },
+        "grant_roles": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "requirement": {
+      "type": "object",
+      "required": [
+        "id",
+        "checker"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checker": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalog_rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "catalog_scope": {
+          "enum": [
+            "fragment",
+            "complete"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bypass_subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "enum": [
+            "administer",
+            "execute",
+            "read",
+            "write"
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "access",
+            "flow"
+          ]
+        },
+        "applicable": {
+          "enum": [
+            "TRUE",
+            "FALSE",
+            "UNKNOWN"
+          ]
+        },
+        "control": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replicas": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "replicas_complete": {
+          "type": "boolean"
+        },
+        "predicate": {
+          "enum": [
+            "acl",
+            "approved",
+            "authenticates",
+            "backup",
+            "changed",
+            "channel",
+            "cover",
+            "crypto_algorithm",
+            "crypto_bits",
+            "crypto_function",
+            "crypto_protected",
+            "enabled",
+            "event_possible",
+            "evidence",
+            "executes",
+            "failure_mode",
+            "has_role",
+            "healthy",
+            "horizon_valid",
+            "independent",
+            "integrity",
+            "key_accessible",
+            "key_required",
+            "logger",
+            "material_available",
+            "observes",
+            "owns",
+            "parameter",
+            "physical",
+            "present",
+            "quantum_capable",
+            "readable",
+            "stores",
+            "transition_enabled",
+            "transport_enabled",
+            "trusted_boot"
+          ]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "expected": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2
+        },
+        "algorithm": {
+          "type": "string"
+        },
+        "function": {
+          "type": "string"
+        },
+        "bits": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "horizon": {
+          "type": "string",
+          "minLength": 1
+        },
+        "document": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        },
+        "repair_options": {
+          "type": "array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "forbidden_operation"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "object",
+              "operation"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "required_operation"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "object",
+              "operation"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "required_function"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "protection"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "authentication"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "logging"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "redundancy"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object",
+              "replicas"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "recovery"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "configuration"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "incompatible_roles"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "roles"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "authorized_change"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "crypto"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "quantum"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "object",
+              "horizon"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "evidence"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "object"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "id",
+        "effects"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "graph": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provenance": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/provenance"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "permission": {
+      "type": "object",
+      "required": [
+        "subject",
+        "object",
+        "operation"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "read",
+            "write",
+            "execute",
+            "administer"
+          ]
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "access",
+            "flow"
+          ]
+        },
+        "applicable": {
+          "enum": [
+            "TRUE",
+            "FALSE",
+            "UNKNOWN"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "dependency_cycle": [
+    "UNKNOWN"
+  ],
+  "keyed_backup": [
+    "FAIL"
+  ],
+  "common_dependency": [
+    "FAIL"
+  ],
+  "configuration_and_duties": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "REQUIRES_EVIDENCE",
+    "NOT_CHECKED"
+  ]
+}
