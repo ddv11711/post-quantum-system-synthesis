@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "component-security-analyzer"
+version = "0.1.0"
+description = "Finite three-valued security analysis of component systems"
+requires-python = ">=3.11"
+dependencies = ["openpyxl==3.1.5", "z3-solver==4.15.4.0"]
+
+[project.scripts]
+component-analyzer = "analyzer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["analyzer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

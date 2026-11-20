@@ -1,0 +1,318 @@
+{
+  "state": "keyed_backup",
+  "profile": "isolated_test_fixture",
+  "nodes": {
+    "data": {
+      "types": [
+        "data"
+      ],
+      "name": "data"
+    },
+    "copy": {
+      "types": [
+        "data",
+        "component"
+      ],
+      "name": "copy"
+    },
+    "key": {
+      "types": [
+        "key"
+      ],
+      "name": "key"
+    }
+  },
+  "facts": [
+    {
+      "predicate": "present",
+      "args": [
+        "data"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "data"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "data"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "copy"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "copy"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "copy"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "key"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "key"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "key"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "backup",
+      "args": [
+        "data",
+        "copy"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "readable",
+      "args": [
+        "copy"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "key_required",
+      "args": [
+        "copy",
+        "key"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "key_accessible",
+      "args": [
+        "key"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/keyed_backup.json",
+          "state": "keyed_backup",
+          "raw_value": "FALSE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "dependencies",
+      "args_prefix": [],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/keyed_backup.json",
+          "json_key": "completeness[0]",
+          "state": "keyed_backup",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "predicate": "backup",
+      "args_prefix": [
+        "data"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/keyed_backup.json",
+          "json_key": "completeness[1]",
+          "state": "keyed_backup",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "predicate": "key_required",
+      "args_prefix": [
+        "copy"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/keyed_backup.json",
+          "json_key": "completeness[2]",
+          "state": "keyed_backup",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "dependencies": {},
+  "transitions": [],
+  "requirements": [
+    {
+      "id": "key_missing",
+      "checker": "recovery",
+      "object": "data",
+      "provenance": [
+        {
+          "file": "examples/fixtures/keyed_backup.json",
+          "json_key": "requirements[0]",
+          "state": "keyed_backup",
+          "kind": "demo_assumption",
+          "raw_value": "key_missing",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowed": []
+  },
+  "mutable": [],
+  "assumptions": [
+    {
+      "kind": "demo_assumption",
+      "description": "Изолированная фикстура; не описание реального пользовательского ПК."
+    }
+  ],
+  "dependency_provenance": {}
+}

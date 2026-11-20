@@ -1,0 +1,590 @@
+{
+  "state": "configuration_and_duties",
+  "profile": "isolated_test_fixture",
+  "nodes": {
+    "os": {
+      "types": [
+        "component"
+      ],
+      "name": "os"
+    },
+    "admin": {
+      "types": [
+        "subject"
+      ],
+      "name": "admin"
+    },
+    "approver": {
+      "types": [
+        "role"
+      ],
+      "name": "approver"
+    },
+    "operator": {
+      "types": [
+        "role"
+      ],
+      "name": "operator"
+    },
+    "change": {
+      "types": [
+        "change"
+      ],
+      "name": "change"
+    },
+    "link": {
+      "types": [
+        "channel"
+      ],
+      "name": "link"
+    }
+  },
+  "facts": [
+    {
+      "predicate": "present",
+      "args": [
+        "os"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "os"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "os"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "admin"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "admin"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "admin"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "approver"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "approver"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "approver"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "operator"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "operator"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "operator"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "change"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "change"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "change"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "link"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "link"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "link"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "trusted_boot",
+      "args": [
+        "os"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "FALSE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "integrity",
+      "args": [
+        "os"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "FALSE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "has_role",
+      "args": [
+        "admin",
+        "approver"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "has_role",
+      "args": [
+        "admin",
+        "operator"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "changed",
+      "args": [
+        "change"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "approved",
+      "args": [
+        "change"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "FALSE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "crypto_protected",
+      "args": [
+        "link"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "state": "configuration_and_duties",
+          "raw_value": "FALSE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "dependencies",
+      "args_prefix": [],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "completeness[0]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "dependencies": {},
+  "transitions": [],
+  "requirements": [
+    {
+      "id": "boot",
+      "checker": "configuration",
+      "object": "os",
+      "predicate": "trusted_boot",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[0]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "boot",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "integrity",
+      "checker": "configuration",
+      "object": "os",
+      "predicate": "integrity",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[1]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "integrity",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "duties",
+      "checker": "incompatible_roles",
+      "object": "admin",
+      "subject": "admin",
+      "roles": [
+        "approver",
+        "operator"
+      ],
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[2]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "duties",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "change",
+      "checker": "authorized_change",
+      "object": "change",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[3]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "change",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "crypto",
+      "checker": "crypto",
+      "object": "link",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[4]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "crypto",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "certificate",
+      "checker": "evidence",
+      "object": "os",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[5]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "certificate",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    },
+    {
+      "id": "unsupported",
+      "checker": "hypothetical_unimplemented",
+      "object": "os",
+      "provenance": [
+        {
+          "file": "examples/fixtures/configuration_and_duties.json",
+          "json_key": "requirements[6]",
+          "state": "configuration_and_duties",
+          "kind": "demo_assumption",
+          "raw_value": "unsupported",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowed": []
+  },
+  "mutable": [],
+  "assumptions": [
+    {
+      "kind": "demo_assumption",
+      "description": "Изолированная фикстура; не описание реального пользовательского ПК."
+    }
+  ],
+  "dependency_provenance": {}
+}

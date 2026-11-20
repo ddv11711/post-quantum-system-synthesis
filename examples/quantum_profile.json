@@ -1,0 +1,266 @@
+{
+  "profile": "quantum_passive_teaching_v1",
+  "nodes": {
+    "1:87": {
+      "types": [
+        "channel"
+      ]
+    },
+    "2:99": {
+      "types": [
+        "subject"
+      ]
+    }
+  },
+  "assumptions": [
+    {
+      "kind": "demo_assumption",
+      "description": "Учебный сценарий: VPN явно назначены RSA-2048, функция key_exchange, наблюдаемый материал, возможность пассивного наблюдения и условный горизонт demo-horizon. Из имени VPN это не следует."
+    },
+    {
+      "kind": "demo_assumption",
+      "description": "Принята достаточная квантовая возможность для условного горизонта; реальный срок появления устройства не прогнозируется. Нормативная допустимость не проверена."
+    },
+    {
+      "kind": "demo_assumption",
+      "description": "Активные read/write переходы этого субъекта в примере перечислены полностью и отсутствуют. Пассивное раскрытие не добавляет ACL."
+    }
+  ],
+  "facts": [
+    {
+      "predicate": "crypto_algorithm",
+      "args": [
+        "1:87"
+      ],
+      "value": "RSA",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[0]",
+          "state": "profile_binding",
+          "raw_value": "RSA",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "crypto_function",
+      "args": [
+        "1:87"
+      ],
+      "value": "key_exchange",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[1]",
+          "state": "profile_binding",
+          "raw_value": "key_exchange",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "crypto_bits",
+      "args": [
+        "1:87"
+      ],
+      "value": "2048",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[2]",
+          "state": "profile_binding",
+          "raw_value": "2048",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "material_available",
+      "args": [
+        "2:99",
+        "1:87"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[3]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "observes",
+      "args": [
+        "2:99",
+        "1:87"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[4]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "quantum_capable",
+      "args": [
+        "2:99",
+        "demo-horizon"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[5]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    },
+    {
+      "predicate": "horizon_valid",
+      "args": [
+        "1:87",
+        "demo-horizon"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "json_key": "facts[6]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit teaching threat scenario"
+        }
+      ]
+    }
+  ],
+  "transitions": [],
+  "completeness": [
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "2:99",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "2:99",
+        "write",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "passive_confidentiality",
+      "checker": "quantum",
+      "object": "1:87",
+      "subject": "2:99",
+      "horizon": "demo-horizon",
+      "catalog_rule_ids": [
+        "CR040"
+      ],
+      "name": "Пассивное раскрытие потока в условном квантовом сценарии",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "raw_value": "passive_confidentiality",
+          "transformation": "local test requirement",
+          "state": "profile_binding"
+        }
+      ]
+    },
+    {
+      "id": "active_read_not_created",
+      "checker": "required_operation",
+      "object": "1:87",
+      "subject": "2:99",
+      "operation": "read",
+      "name": "Контрольный эксперимент: обязательный активный read не достигается пассивным раскрытием",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "raw_value": "active_read_not_created",
+          "transformation": "local test requirement",
+          "state": "profile_binding"
+        }
+      ]
+    },
+    {
+      "id": "write_not_created",
+      "checker": "forbidden_operation",
+      "object": "1:87",
+      "subject": "2:99",
+      "operation": "write",
+      "name": "Пассивное раскрытие не создаёт запись",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "raw_value": "write_not_created",
+          "transformation": "local test requirement",
+          "state": "profile_binding"
+        }
+      ]
+    },
+    {
+      "id": "crypto_document",
+      "checker": "evidence",
+      "object": "1:87",
+      "document": "normative_approval",
+      "name": "Документ нормативной допустимости не предоставлен",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/quantum_profile.json",
+          "kind": "demo_assumption",
+          "raw_value": "crypto_document",
+          "transformation": "local test requirement",
+          "state": "profile_binding"
+        }
+      ]
+    }
+  ],
+  "mutable": []
+}

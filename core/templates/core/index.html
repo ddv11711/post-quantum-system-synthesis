@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Защищённость системы — BIGVIZOV</title>
+    <link rel="stylesheet" href="{% static 'core/css/graph_view.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <script defer src="{% static 'core/js/graph_view.js' %}"></script>
+    <script defer src="{% static 'core/js/main.js' %}"></script>
+</head>
+<body>
+    <a href="{% url 'home' %}" style="position:fixed;bottom:17px;left:17px;z-index:200;background:#fff;color:#252525;border:1px solid #dfe2eb;box-shadow:0 2px 10px #0001;padding:9px 14px;border-radius:9px;text-decoration:none;font:500 13px Inter,Arial,sans-serif">← На главную</a>
+    <div class="app" id="security-app" data-scenario-url="{% url 'security-scenario' %}">
+        {% csrf_token %}
+        <header class="app-header">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="m8 9 16 3-10 13L8 9Z" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="9" r="4" fill="currentColor"/><circle cx="24" cy="12" r="4" fill="currentColor"/><circle cx="14" cy="25" r="4" fill="currentColor"/></svg></span>
+                <div><span class="brand-name">BIGVIZOV</span><span class="brand-caption">Логический анализатор</span></div>
+            </div>
+            <span class="model-label">4 ПК и общий сетевой диск</span>
+        </header>
+        <main>
+            <div class="page-heading"><h1>Защищённость системы</h1></div>
+            <section class="system-status" id="system-status" data-state="loading" aria-labelledby="status-title">
+                <div class="status-symbol" id="status-symbol" aria-hidden="true"><span class="spinner"></span></div>
+                <div class="status-copy" aria-live="polite"><h2 id="status-title">Проверяем граф…</h2><p id="status-description">Загружаем компоненты и проверяем доступ к ресурсам.</p></div>
+                <button type="button" class="primary-button" id="repair-button" disabled>Исправить уязвимости</button>
+            </section>
+            <p class="page-feedback" id="page-feedback" role="alert" hidden></p>
+            <div class="analysis-workspace">
+                <section class="graph-card" aria-labelledby="graph-title">
+                    <header class="graph-header">
+                        <div><h2 id="graph-title">Граф системы</h2><p class="graph-meta"><span id="node-count">—</span> узел · <span id="edge-count">—</span> связей</p></div>
+                        <div class="phase-switch" role="group" aria-label="Состояние графа">
+                            <button type="button" id="before-tab" aria-pressed="true" disabled>До исправления</button>
+                            <button type="button" id="after-tab" aria-pressed="false" disabled>После исправления</button>
+                        </div>
+                    </header>
+                    <div id="security-graph" aria-busy="true">
+                        <div class="graph-loading"><span class="spinner" aria-hidden="true"></span><p id="loading-message">Загружаем граф системы</p><button type="button" class="secondary-button" id="retry-button" hidden>Повторить загрузку</button></div>
+                    </div>
+                    <footer class="graph-footer"><div class="graph-legend" aria-label="Обозначения на графе"><span><i class="legend-dot danger"></i>Нарушение</span><span><i class="legend-dot warning"></i>Проблема компонента</span><span><i class="legend-dot success"></i>Исправлено</span></div><span class="graph-tip">Нажмите на узел, чтобы узнать больше</span></footer>
+                </section>
+                <aside class="findings-panel" aria-labelledby="findings-title">
+                    <div class="findings-heading"><h2 id="findings-title">Результат проверки</h2><span class="finding-count" id="finding-count" hidden></span></div>
+                    <div id="findings-list" class="findings-list" aria-live="polite"><p class="findings-empty">Проверяем доступ, защиту и регистрацию событий…</p></div>
+                    <div class="checks-summary"><span id="check-icon" aria-hidden="true">✓</span><div><strong id="check-count">Проверка выполняется</strong><p id="check-description">Результаты появятся вместе с графом.</p></div></div>
+                </aside>
+            </div>
+            <footer class="app-footer"><span>Учебная модель на основе ваших файлов.</span><span>Excel принят за полный перечень компонентов. Проверяются 12 требований сценария.</span></footer>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+{
+  "state": "dependency_cycle",
+  "profile": "isolated_test_fixture",
+  "nodes": {
+    "a": {
+      "types": [
+        "component"
+      ],
+      "name": "a"
+    },
+    "b": {
+      "types": [
+        "component"
+      ],
+      "name": "b"
+    }
+  },
+  "facts": [
+    {
+      "predicate": "present",
+      "args": [
+        "a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/dependency_cycle.json",
+          "state": "dependency_cycle",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "dependencies",
+      "args_prefix": [],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/dependency_cycle.json",
+          "json_key": "completeness[0]",
+          "state": "dependency_cycle",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "a": {
+      "all": [
+        "b"
+      ]
+    },
+    "b": {
+      "all": [
+        "a"
+      ]
+    }
+  },
+  "transitions": [],
+  "requirements": [
+    {
+      "id": "cycle_has_no_ground",
+      "checker": "required_function",
+      "object": "a",
+      "provenance": [
+        {
+          "file": "examples/fixtures/dependency_cycle.json",
+          "json_key": "requirements[0]",
+          "state": "dependency_cycle",
+          "kind": "demo_assumption",
+          "raw_value": "cycle_has_no_ground",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowed": []
+  },
+  "mutable": [],
+  "assumptions": [
+    {
+      "kind": "demo_assumption",
+      "description": "Изолированная фикстура; не описание реального пользовательского ПК."
+    }
+  ],
+  "dependency_provenance": {
+    "a": [
+      {
+        "file": "examples/fixtures/dependency_cycle.json",
+        "json_key": "dependencies.a",
+        "state": "dependency_cycle",
+        "kind": "demo_assumption",
+        "raw_value": {
+          "all": [
+            "b"
+          ]
+        },
+        "transformation": "explicit isolated dependency equation"
+      }
+    ],
+    "b": [
+      {
+        "file": "examples/fixtures/dependency_cycle.json",
+        "json_key": "dependencies.b",
+        "state": "dependency_cycle",
+        "kind": "demo_assumption",
+        "raw_value": {
+          "all": [
+            "a"
+          ]
+        },
+        "transformation": "explicit isolated dependency equation"
+      }
+    ]
+  }
+}

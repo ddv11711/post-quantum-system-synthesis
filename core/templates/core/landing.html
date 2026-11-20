@@ -1,0 +1,163 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BIGVIZOV — Система анализа</title>
+
+    <link rel="stylesheet"
+          href="{% static 'core/css/landing.css' %}">
+
+    <script defer
+            src="{% static 'core/js/landing.js' %}"></script>
+</head>
+<body>
+
+<div class="screen-container">
+
+    <!-- ГЛАВНАЯ СТРАНИЦА -->
+    <main class="landing page-screen is-active"
+          id="home-screen">
+
+        <section class="intro">
+            <div class="art-crop">
+                <img
+                    src="{% static 'core/img/landing-art.svg' %}"
+                    alt=""
+                    draggable="false"
+                >
+            </div>
+        </section>
+
+        <section class="actions">
+
+            <div class="upload-panel">
+                <span class="upload-title">Импорт</span>
+
+                <label class="upload-target"
+                       for="model-file"
+                       id="upload-target">
+
+                    <input
+                        id="model-file"
+                        type="file"
+                        accept=".json,.html,.htm,.xlsx,.zip"
+                    >
+
+                    <span id="file-hint">
+                        Добавить файл
+                    </span>
+                </label>
+            </div>
+
+            <a class="analyze-link"
+               href="{% url 'analysis' %}">
+                Запустить анализ
+            </a>
+
+            <nav class="secondary-links">
+                <span class="placeholder">
+                    Шаблоны
+                </span>
+
+                <button
+                    type="button"
+                    class="normative-open"
+                    id="open-normative">
+                    Нормативная база
+                </button>
+            </nav>
+
+        </section>
+    </main>
+
+
+    <!-- НОРМАТИВНАЯ БАЗА -->
+    <main class="landing page-screen normative-screen"
+          id="normative-screen"
+          aria-hidden="true"
+          inert>
+
+        <section class="intro">
+            <div class="art-crop">
+                <img
+                    src="{% static 'core/img/landing-art.svg' %}"
+                    alt=""
+                    draggable="false"
+                >
+            </div>
+        </section>
+
+        <section class="normative-content">
+
+            <fieldset class="documents-panel">
+
+                <legend>Нормативная база</legend>
+
+                <div class="documents-grid">
+
+                    {% for document in documents %}
+
+                    <a class="document-item"
+                       href="{% url 'download-normative' document.filename %}"
+                       download>
+
+                        <span class="pdf-icon"
+                              aria-hidden="true">
+                            <svg viewBox="0 0 32 40"
+                                 fill="none">
+                                <path
+                                    d="M4 1H21L29 9V39H4V1Z"
+                                    stroke="currentColor"
+                                    stroke-width="2"/>
+                                <path
+                                    d="M21 1V9H29"
+                                    stroke="currentColor"
+                                    stroke-width="2"/>
+                                <rect x="1" y="20"
+                                      width="25" height="13"
+                                      fill="currentColor"/>
+                                <text x="3" y="29.5"
+                                      font-size="9"
+                                      font-weight="bold"
+                                      fill="#F2F2F2">
+                                    PDF
+                                </text>
+                            </svg>
+                        </span>
+
+                        <span class="document-name">
+                            {{ document.title }}
+                        </span>
+
+                    </a>
+
+                    {% empty %}
+
+                    <p class="empty-documents">
+                        Документы пока не добавлены.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </fieldset>
+
+            <button class="back-button"
+                    type="button"
+                    id="close-normative">
+                Назад
+            </button>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

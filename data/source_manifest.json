@@ -1,0 +1,20 @@
+[
+  {
+    "file": "data/sources/graf-svyazey-pk.html",
+    "original_filename": "graf-svyazey-pk.html",
+    "sha256": "c4c137b470eb7f808fb1e71e7d26f3baf7fa174dfe942a6901a4a4d7ee94d85e",
+    "original_unchanged_and_copy_identical": true
+  },
+  {
+    "file": "data/sources/katalog_pravil_logicheskogo_analizatora.docx",
+    "original_filename": "katalog_pravil_logicheskogo_analizatora.docx",
+    "sha256": "7a0aa6e64a5856e5dff85451e6e77f3e4c87d2c0d880c57bf9890e3f1b229d91",
+    "original_unchanged_and_copy_identical": true
+  },
+  {
+    "file": "data/sources/Четыре_конфигурации_ПК_уязвим.xlsx",
+    "original_filename": "Четыре_конфигурации_ПК_уязвим.xlsx",
+    "sha256": "5cdfdc29676a3721ca9369eff4cf0582d17fe2082be7ce4505f70672eb32f961",
+    "original_unchanged_and_copy_identical": true
+  }
+]

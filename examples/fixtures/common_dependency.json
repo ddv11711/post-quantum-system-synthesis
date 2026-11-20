@@ -1,0 +1,316 @@
+{
+  "state": "common_dependency",
+  "profile": "isolated_test_fixture",
+  "nodes": {
+    "service": {
+      "types": [
+        "component"
+      ],
+      "name": "service"
+    },
+    "replica_a": {
+      "types": [
+        "component"
+      ],
+      "name": "replica_a"
+    },
+    "replica_b": {
+      "types": [
+        "component"
+      ],
+      "name": "replica_b"
+    },
+    "power": {
+      "types": [
+        "component"
+      ],
+      "name": "power"
+    }
+  },
+  "facts": [
+    {
+      "predicate": "present",
+      "args": [
+        "service"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "service"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "service"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "replica_a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "replica_a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "replica_a"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "replica_b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "replica_b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "replica_b"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "power"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "power"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "power"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "kind": "demo_assumption",
+          "file": "examples/fixtures/common_dependency.json",
+          "state": "common_dependency",
+          "raw_value": "TRUE",
+          "transformation": "explicit isolated fixture"
+        }
+      ]
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "dependencies",
+      "args_prefix": [],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/common_dependency.json",
+          "json_key": "completeness[0]",
+          "state": "common_dependency",
+          "kind": "demo_assumption",
+          "raw_value": true,
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "replica_a": {
+      "all": [
+        "power"
+      ]
+    },
+    "replica_b": {
+      "all": [
+        "power"
+      ]
+    }
+  },
+  "transitions": [],
+  "requirements": [
+    {
+      "id": "common_power",
+      "checker": "redundancy",
+      "object": "service",
+      "replicas": [
+        "replica_a",
+        "replica_b"
+      ],
+      "replicas_complete": true,
+      "provenance": [
+        {
+          "file": "examples/fixtures/common_dependency.json",
+          "json_key": "requirements[0]",
+          "state": "common_dependency",
+          "kind": "demo_assumption",
+          "raw_value": "common_power",
+          "transformation": "explicit isolated fixture declaration"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowed": []
+  },
+  "mutable": [],
+  "assumptions": [
+    {
+      "kind": "demo_assumption",
+      "description": "Изолированная фикстура; не описание реального пользовательского ПК."
+    }
+  ],
+  "dependency_provenance": {
+    "replica_a": [
+      {
+        "file": "examples/fixtures/common_dependency.json",
+        "json_key": "dependencies.replica_a",
+        "state": "common_dependency",
+        "kind": "demo_assumption",
+        "raw_value": {
+          "all": [
+            "power"
+          ]
+        },
+        "transformation": "explicit isolated dependency equation"
+      }
+    ],
+    "replica_b": [
+      {
+        "file": "examples/fixtures/common_dependency.json",
+        "json_key": "dependencies.replica_b",
+        "state": "common_dependency",
+        "kind": "demo_assumption",
+        "raw_value": {
+          "all": [
+            "power"
+          ]
+        },
+        "transformation": "explicit isolated dependency equation"
+      }
+    ]
+  }
+}

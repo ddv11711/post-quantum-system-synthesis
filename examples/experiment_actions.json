@@ -1,0 +1,75 @@
+{
+  "description": "Отдельный учебный эксперимент после сравнения: отключить регистрацию и открыть два интерфейса NAS. Это не изменения, обнаруженные в XLSX.",
+  "actions": [
+    {
+      "id": "simulate_logger_disabled",
+      "effects": [
+        {
+          "predicate": "enabled",
+          "args": [
+            "1:70"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "examples/experiment_actions.json",
+          "state": "profile_binding",
+          "raw_value": "experiment",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "simulate_close_application_acl",
+      "effects": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "2:71",
+            "read"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "examples/experiment_actions.json",
+          "state": "profile_binding",
+          "raw_value": "experiment",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "simulate_close_vpn_acl",
+      "effects": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "g:102",
+            "read"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "examples/experiment_actions.json",
+          "state": "profile_binding",
+          "raw_value": "experiment",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ]
+}
