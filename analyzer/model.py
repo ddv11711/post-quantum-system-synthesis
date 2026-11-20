@@ -6,6 +6,8 @@ same ground fact are a model error, rather than an arbitrary source preference.
 from collections import defaultdict
 from copy import deepcopy
 from .logic import TRUE, FALSE, UNKNOWN, truth
+from .mandatory import validate_security
+from .fls import validate_fls
 
 OPERATIONS = {"read", "write", "execute", "administer"}
 NODE_TYPES = {"component", "subject", "data", "function", "event", "key", "role", "channel", "change", "unknown"}
@@ -164,6 +166,8 @@ def _shape_errors(model):
         string_fields(entry, ("predicate",), f"$/completeness/{index}")
         if "args_prefix" in entry:
             strings(entry["args_prefix"], f"$/completeness/{index}/args_prefix")
+    if "incomplete_dependencies" in model:
+        strings(model["incomplete_dependencies"], "$/incomplete_dependencies")
     dependencies = model.get("dependencies", {})
     if not isinstance(dependencies, dict):
         error("$/dependencies", "object mapping component keys to equations")
@@ -179,12 +183,12 @@ def _shape_errors(model):
         string_fields(entry, ("id", "checker", "object", "subject", "source", "bypass_subject", "operation", "scenario", "kind", "horizon", "predicate"), path)
         if "expected" in entry and not isinstance(entry["expected"], (str, bool, int, float)):
             error(path + "/expected", "scalar expected value")
-        for field in ("args", "replicas", "roles", "endpoints"):
+        for field in ("args", "replicas", "roles", "endpoints", "missing"):
             if field in entry:
                 strings(entry[field], path + "/" + field)
     for index, entry in records(model.get("transitions", []), "$/transitions"):
         path = f"$/transitions/{index}"
-        string_fields(entry, ("id", "source", "target", "subject", "via", "operation", "scenario", "kind"), path)
+        string_fields(entry, ("id", "source", "target", "subject", "via", "channel", "operation", "scenario", "kind"), path)
         for offset, condition in records(entry.get("conditions", []), path + "/conditions"):
             atom(condition, path + f"/conditions/{offset}")
     policy = model.get("policy", {})
@@ -213,7 +217,12 @@ def validate_model(model):
     errors = _shape_errors(model)
     if errors:
         return errors
+    errors.extend(validate_security(model))
+    errors.extend(validate_fls(model))
     nodes = model.get("nodes", {})
+    for key in model.get("incomplete_dependencies", []):
+        if key not in nodes:
+            errors.append({"code": "UNKNOWN_DEPENDENCY_SCOPE", "object": key})
     transitions = model.get("transitions", [])
     transition_ids = {item.get("id") for item in transitions}
     seen = {}
@@ -232,6 +241,9 @@ def validate_model(model):
         value = "TRUE" if value is True else "FALSE" if value is False else value
         if name not in SCALAR_PREDICATES and value not in ("TRUE", "FALSE", "UNKNOWN"):
             errors.append({"code": "NON_BOOLEAN_FACT", "fact": entry})
+        if name == "failure_mode" and value not in ("normal", "fail_open", "fail_closed", "UNKNOWN"):
+            errors.append({"code": "UNSUPPORTED_FAILURE_MODE", "fact": entry,
+                           "reason": "expected normal, fail_open, fail_closed or UNKNOWN"})
         if key in seen and seen[key] != value:
             errors.append({"code": "CONFLICTING_FACTS", "predicate": name, "args": args,
                            "values": [seen[key], value]})
@@ -278,6 +290,8 @@ def validate_model(model):
             "configuration": ["object"], "incompatible_roles": ["subject", "roles"],
             "authorized_change": ["object"], "crypto": ["object"],
             "quantum": ["object", "subject", "horizon"], "evidence": ["object"],
+            "mandatory_access": ["subject", "object", "operation"],
+            "label_flow": ["subject", "source", "object"], "clearance": ["subject"],
         }
         for field in required_fields.get(req.get("checker"), []):
             if field not in req:

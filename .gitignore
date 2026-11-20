@@ -13,3 +13,29 @@ db.sqlite3-*
 .env
 .env.*
 !.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+.venv-analyzer/
+
+# Django
+db.sqlite3
+*.sqlite3
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

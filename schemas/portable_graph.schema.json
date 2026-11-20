@@ -1,0 +1,1398 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "component-security-graph/v1"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nodes": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/node"
+              },
+              {
+                "anyOf": [
+                  {
+                    "required": [
+                      "id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "key"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "actual_acl": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "object": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "read",
+                "write",
+                "execute",
+                "administer"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "allowed": {
+            "enum": [
+              true,
+              false,
+              "TRUE",
+              "FALSE",
+              "UNKNOWN",
+              null
+            ]
+          }
+        },
+        "required": [
+          "subject",
+          "object",
+          "operations"
+        ]
+      }
+    },
+    "completeness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "predicate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args_prefix": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "predicate",
+          "complete"
+        ]
+      }
+    },
+    "assumptions": {
+      "type": "array"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "enum": [
+            "deny",
+            "unknown"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "subjects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "objects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "read",
+                  "write",
+                  "execute",
+                  "administer"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "scenario": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "read",
+                    "write",
+                    "execute",
+                    "administer"
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "access",
+                  "flow"
+                ]
+              }
+            },
+            "required": [
+              "object",
+              "operations"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "subject"
+                ],
+                "not": {
+                  "required": [
+                    "role"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "role"
+                ],
+                "not": {
+                  "required": [
+                    "subject"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "denies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "read",
+                    "write",
+                    "execute",
+                    "administer"
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "access",
+                  "flow"
+                ]
+              }
+            },
+            "required": [
+              "object",
+              "operations"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "subject"
+                ],
+                "not": {
+                  "required": [
+                    "role"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "role"
+                ],
+                "not": {
+                  "required": [
+                    "subject"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "read",
+                    "write",
+                    "execute",
+                    "administer"
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "access",
+                  "flow"
+                ]
+              }
+            },
+            "required": [
+              "object",
+              "operations"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "subject"
+                ],
+                "not": {
+                  "required": [
+                    "role"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "role"
+                ],
+                "not": {
+                  "required": [
+                    "subject"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "security_policy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "confidentiality_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "integrity_enabled": {
+          "type": "boolean"
+        },
+        "integrity_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "integrity_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "declassifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operation": {
+                "const": "write"
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from_label": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  }
+                }
+              },
+              "to_label": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  }
+                }
+              },
+              "authorized": {
+                "enum": [
+                  true,
+                  false,
+                  "TRUE",
+                  "FALSE",
+                  "UNKNOWN",
+                  null
+                ]
+              },
+              "provenance": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "id",
+              "subject",
+              "source",
+              "target",
+              "operation",
+              "scenario",
+              "from_label",
+              "to_label",
+              "authorized"
+            ]
+          }
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "subjects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "objects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "read",
+                  "write"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "scenarios": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "repair_policy": {
+      "type": "object",
+      "properties": {
+        "allowed_operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "enum": [
+                  "revoke_access",
+                  "enable_control",
+                  "restore_component"
+                ]
+              },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "transitions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "cost": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "acl": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "subject": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "object": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "operation": {
+                      "enum": [
+                        "read",
+                        "write",
+                        "execute",
+                        "administer"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "subject",
+                    "object",
+                    "operation"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          }
+        }
+      }
+    },
+    "mutable": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "predicate",
+          "args"
+        ],
+        "properties": {
+          "predicate": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "action_catalog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "effects"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "predicate",
+                "args",
+                "value"
+              ]
+            }
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "predicate",
+          "args",
+          "value"
+        ],
+        "properties": {
+          "predicate": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "value": {
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ]
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "checker"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checker": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "read",
+              "write",
+              "execute",
+              "administer"
+            ]
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "nodes",
+    "edges"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sirius:component-security-graph:v1",
+  "title": "Portable typed component security graph",
+  "$defs": {
+    "node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "present": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "enabled": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "healthy": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "transport_enabled": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "event_possible": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "readable": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "key_accessible": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "integrity": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "trusted_boot": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "crypto_protected": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "changed": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "approved": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "authentication_required": {
+          "type": "boolean"
+        },
+        "logging_required": {
+          "type": "boolean"
+        },
+        "backup_required": {
+          "type": "boolean"
+        },
+        "integrity_required": {
+          "type": "boolean"
+        },
+        "trusted_boot_required": {
+          "type": "boolean"
+        },
+        "dependencies_complete": {
+          "type": "boolean"
+        },
+        "roles_complete": {
+          "type": "boolean"
+        },
+        "security_label": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "minLength": 1
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "integrity_label": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "minLength": 1
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "clearance": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "minLength": 1
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "required_controls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "expected_parameters": {
+          "type": "object"
+        },
+        "dependencies": {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "any": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "known_vulnerabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "patched": {
+                "enum": [
+                  true,
+                  false,
+                  "TRUE",
+                  "FALSE",
+                  "UNKNOWN",
+                  null
+                ]
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "crypto_required": {
+          "type": "boolean"
+        },
+        "redundancy_required": {
+          "type": "boolean"
+        },
+        "replicas_complete": {
+          "type": "boolean"
+        },
+        "replicas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failure_mode": {
+          "enum": [
+            "normal",
+            "fail_open",
+            "fail_closed",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "untyped",
+            "access",
+            "flow",
+            "copy",
+            "dependency",
+            "protection",
+            "control_coverage",
+            "authentication",
+            "logger",
+            "backup",
+            "key_required",
+            "physical",
+            "channel",
+            "stores",
+            "executes",
+            "owns",
+            "authenticates",
+            "independent",
+            "interaction"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "read",
+              "write",
+              "execute",
+              "administer"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allowed": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "enabled": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "value": {
+          "enum": [
+            true,
+            false,
+            "TRUE",
+            "FALSE",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "via": {
+          "type": "string",
+          "minLength": 1
+        },
+        "control": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "use_acl": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "predicate": {
+                "type": "string",
+                "minLength": 1
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "expected": {
+                "type": [
+                  "string",
+                  "boolean",
+                  "number"
+                ]
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "boolean",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "predicate",
+              "args"
+            ]
+          }
+        },
+        "layers": {
+          "type": "object",
+          "properties": {
+            "physical": {
+              "enum": [
+                true,
+                false,
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                null
+              ]
+            },
+            "syntactic": {
+              "enum": [
+                true,
+                false,
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                null
+              ]
+            },
+            "semantic": {
+              "enum": [
+                true,
+                false,
+                "TRUE",
+                "FALSE",
+                "UNKNOWN",
+                null
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bidirectional": {
+          "type": "boolean"
+        },
+        "protection_via": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "source",
+        "target"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "access",
+                  "flow",
+                  "copy"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "access"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "operations"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "protection",
+                  "control_coverage"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "control"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "layers"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "interaction"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -3681,8 +3681,8 @@
         "automatic_profile_activation": false
       },
       "formalization": {
-        "support_status": "requires_additional_data",
-        "implementation_scope": "none",
+        "support_status": "implemented",
+        "implementation_scope": "formal_fragment_only",
         "whole_rule_implemented": false,
         "mapping_provenance": {
           "file": "analyzer/catalog.py",
@@ -3690,8 +3690,32 @@
           "transformation": "explicit reviewed rule-ID to finite checker mapping",
           "version": "1"
         },
-        "reason": "Нет готового полного преобразования этого предметного условия в предикаты ядра. Нужны явно заданные данные и отдельная формализация: Метка объекта, операции копирования и преобразования, правила наследования, внешние получатели.",
-        "checkers": [],
+        "reason": "Исполняются перечисленные формальные фрагменты при явном задании их предикатов; весь исходный пункт автоматически не подтверждается.",
+        "checkers": [
+          {
+            "checker": "label_flow",
+            "condition": "ActualFlow(subject, source, destination, write, scenario) AND NOT (ConfidentialityLabel(destination) dominates ConfidentialityLabel(source) OR ExactAuthorizedDeclassification(subject, source, destination, write, scenario, both_labels))",
+            "input_facts": [
+              "explicit source-to-copy or source-to-recipient flow",
+              "context-preserving actual flow transitions and gates",
+              "source and destination confidentiality labels with level and categories",
+              "declared finite level order",
+              "exact authorized declassification if present"
+            ],
+            "completeness_scope": "declared source/destination transfer and subject/write/scenario flow context; full transition scope is required to prove absence of a forbidden flow; compile every explicit data-bearing transfer",
+            "explanation": "A confirmed transfer to a destination that fails to preserve source classification or compartments violates this fragment unless an exact declared declassification authorizes it. Unknown labels remain UNKNOWN; clearance-only or integrity-only failures do not prove this confidentiality fragment.",
+            "repair_templates": [
+              "revoke an explicitly mutable actual ACL or close an authorized flow gate while preserving required operations; classification, clearance and declassification policy are immutable"
+            ],
+            "covered_scope": "Confidentiality classification and compartment preservation on explicitly declared transfers/copies, including exact declared exceptions. Other security attributes, transformations, undeclared intermediate copies or external recipients, document approval and organizational inheritance procedures are not covered; no automatic relabeling or dynamic taint analysis.",
+            "result_projection": "FT025 uses actual flow and confidentiality preservation only; local clearance/integrity results remain separate findings",
+            "test_refs": [
+              "tests/test_engine.py",
+              "tests/test_catalog.py",
+              "tests/test_mandatory.py"
+            ]
+          }
+        ],
         "uncovered_conditions": "Применимость, исходные нужные данные и условия вне covered_scope каждого фрагмента требуют отдельной проверки. Неизвестно правило переноса метки или невозможно сопоставить копию исходным данным.",
         "evidence_required_by_source": false,
         "evidence_checker": null

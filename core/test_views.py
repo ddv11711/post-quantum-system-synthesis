@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from analyzer.scenarios import scenario_catalog as catalogue, run_scenario as execute_scenario
+from .template_registry import resolve_template
 
 
 def _display_state(state):
@@ -36,13 +37,17 @@ def security_scenario(request):
         if request.content_type != 'application/json':
             return JsonResponse({'error': 'Передайте параметры JSON.'}, status=415)
         payload = json.loads(request.body or b'{}')
-        if not isinstance(payload, dict) or set(payload) - {'repair'} or not isinstance(payload.get('repair', False), bool):
+        if not isinstance(payload, dict) or set(payload) - {'repair', 'template'} or not isinstance(payload.get('repair', False), bool):
             return JsonResponse({'error': 'Допустим только булев параметр repair.'}, status=400)
-        execution = execute_scenario('experiment', repair=payload.get('repair', False), closed_inventory=True)
+        template = resolve_template(payload.get('template', 'Shablon1'))
+        if template is None:
+            return JsonResponse({'error': 'Шаблон не найден. Выберите шаблон на главной странице.'}, status=400)
+        execution = execute_scenario('experiment', repair=payload.get('repair', False),
+                                     closed_inventory=True, sources_dir=template)
         source = execution['report']
         report = {
             'kind': 'analysis_bundle', 'schema_version': 1, 'display_mode': 'fresh_analysis',
-            'scenario': {'id': 'experiment', 'title': 'Четыре ПК и общий сетевой диск',
+            'scenario': {'id': 'experiment', 'title': template.name,
                          'closed_inventory': True, 'educational': True},
             'states': {'before': _display_state(source['states']['experiment'])},
             'assumptions': source.get('assumptions', []),

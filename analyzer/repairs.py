@@ -41,7 +41,7 @@ def generate_candidates(model, report=None):
             collect(finding.get('witness'))
             collect(finding.get('derivation', []))
     selected = {i for i, a in catalog.items() if failures.intersection(a.get('targets', [])) or
-                any(_key(e) in used for e in a.get('effects', []))}
+                (a.get('generated_by') != 'repair_policy' and any(_key(e) in used for e in a.get('effects', [])))}
     while True:
         more = {i for k in selected for i in catalog[k].get('requires', []) if i in catalog}
         if more <= selected:
@@ -83,17 +83,19 @@ def preserve_protected_resources(original, changed, targets):
     before, after = FactBase(original), FactBase(changed)
     errors = []
     for req in original.get('requirements', []):
-        for obj in [req.get('object'), req.get('subject'), req.get('bypass_subject')]:
+        for obj in [req.get('object'), req.get('subject'), req.get('source'), req.get('bypass_subject')]:
             if obj and before.boolean('present', [obj]) == 'TRUE' and after.boolean('present', [obj]) != 'TRUE':
                 errors.append(f'protected target resource or subject disappeared or became unknown: {obj}')
     return errors
 
 
 def find_repairs(model, actions=None, targets=None, *, max_candidates=4096, timeout_seconds=30):
-    """Exact lexicographic minimum in a finite declared action space.
+    """Seek a lexicographic minimum in a finite declared action space.
 
     Invalid models are blocked by their exact Boolean assignment. No invalid
-    subset implies that its supersets are invalid. Only actions enter Z3.
+    subset implies that its supersets are invalid. Only actions enter Z3. Large
+    catalogues first test a joint repair, retaining an independently verified
+    incumbent when the exact search cannot prove optimality within its limits.
     """
     started = perf_counter()
     before = analyze(model)
@@ -111,9 +113,16 @@ def find_repairs(model, actions=None, targets=None, *, max_candidates=4096, time
               'checked_sets': 0, 'rejected': [], 'optimality_proven': False,
               'plan_semantics': 'atomic compatible batch; intermediate states not certified'}
 
+    incumbent = None
+
     def finish(status, **extra):
         result.update(status=status, elapsed_seconds=perf_counter()-started, **extra)
         return result
+
+    def limited(reason):
+        if incumbent:
+            return finish('VERIFIED_CANDIDATE', reason=reason, optimality_proven=False, **incumbent)
+        return finish('SEARCH_LIMIT', reason=reason)
 
     if before.get('model_errors'):
         return finish('MODEL_ERROR', reason='inconsistent input is not a safe or repairable baseline')
@@ -150,18 +159,8 @@ def find_repairs(model, actions=None, targets=None, *, max_candidates=4096, time
     cost = z3.Sum([z3.If(v, a.get('cost', 1), 0) for v, a in zip(variables, actions)]) if variables else z3.IntVal(0)
     count_obj = opt.minimize(count)
     cost_obj = opt.minimize(cost)
-    while result['checked_sets'] < max_candidates:
-        remaining = timeout_seconds - (perf_counter() - started)
-        if remaining <= 0:
-            return finish('SEARCH_LIMIT', reason='wall_clock_timeout')
-        opt.set(timeout=max(1, int(remaining*1000)))
-        status = opt.check()
-        if status == z3.unsat:
-            return finish('NO_VALID_REPAIR_IN_ACTION_SPACE', optimality_proven=True)
-        if status != z3.sat:
-            return finish('SEARCH_LIMIT', reason=f'z3: {opt.reason_unknown()}')
-        assignment = opt.model()
-        selected_bits = [z3.is_true(assignment.eval(v, model_completion=True)) for v in variables]
+
+    def verify(selected_bits):
         selected = [a for a, bit in zip(actions, selected_bits) if bit]
         result['checked_sets'] += 1
         try:
@@ -171,17 +170,42 @@ def find_repairs(model, actions=None, targets=None, *, max_candidates=4096, time
         except (ValueError, KeyError, TypeError) as exc:
             errors = [str(exc)]
         if not errors:
-            # A fresh JSON round trip avoids trusting cached results or objects.
             independent = analyze(json.loads(json.dumps(changed, ensure_ascii=False)))
-            errors = validate_repair(before, independent, targets)
+            errors = validate_repair(before, independent, targets) + preserve_protected_resources(model, changed, targets)
             if not errors:
-                proven = (str(opt.lower(count_obj)) == str(opt.upper(count_obj)) and
-                          str(opt.lower(cost_obj)) == str(opt.upper(cost_obj)))
-                return finish('OPTIMAL_REPAIR' if proven else 'VERIFIED_CANDIDATE',
-                              optimality_proven=proven, selected=[a['id'] for a in selected],
-                              objective_value=[len(selected), sum(a.get('cost', 1) for a in selected)],
-                              repaired_model=changed, verification=independent,
-                              independently_rechecked=True)
+                return {'selected': [a['id'] for a in selected],
+                        'objective_value': [len(selected), sum(a.get('cost', 1) for a in selected)],
+                        'repaired_model': changed, 'verification': independent, 'independently_rechecked': True}
         result['rejected'].append({'actions': [a['id'] for a in selected], 'reasons': errors})
         opt.add(z3.Or([v != z3.BoolVal(bit) for v, bit in zip(variables, selected_bits)]))
-    return finish('SEARCH_LIMIT', reason='candidate_budget')
+        return None
+
+    if len(actions) >= 8 and max_candidates > 1:
+        if perf_counter() - started >= timeout_seconds:
+            return limited('wall_clock_timeout')
+        incumbent = verify([True] * len(actions))
+        if incumbent:
+            size, total_cost = incumbent['objective_value']
+            opt.add(z3.Or(count < size, z3.And(count == size, cost < total_cost)))
+            result['search_strategy'] = 'verified joint candidate followed by exact improvement search'
+    while result['checked_sets'] < max_candidates:
+        remaining = timeout_seconds - (perf_counter() - started)
+        if remaining <= 0:
+            return limited('wall_clock_timeout')
+        opt.set(timeout=max(1, int(remaining*1000)))
+        status = opt.check()
+        if status == z3.unsat:
+            if incumbent:
+                return finish('OPTIMAL_REPAIR', optimality_proven=True, **incumbent)
+            return finish('NO_VALID_REPAIR_IN_ACTION_SPACE', optimality_proven=True)
+        if status != z3.sat:
+            return limited(f'z3: {opt.reason_unknown()}')
+        assignment = opt.model()
+        selected_bits = [z3.is_true(assignment.eval(v, model_completion=True)) for v in variables]
+        candidate = verify(selected_bits)
+        if candidate:
+            proven = (str(opt.lower(count_obj)) == str(opt.upper(count_obj)) and
+                      str(opt.lower(cost_obj)) == str(opt.upper(cost_obj)))
+            return finish('OPTIMAL_REPAIR' if proven else 'VERIFIED_CANDIDATE',
+                          optimality_proven=proven, **candidate)
+    return limited('candidate_budget')

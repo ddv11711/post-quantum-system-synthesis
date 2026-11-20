@@ -1,0 +1,212 @@
+{
+  "schema": "component-security-graph/v1",
+  "state": "workshop-baseline",
+  "profile": "declared-workshop",
+  "nodes": {
+    "analyst:Елена": {
+      "type": "user",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "public",
+        "categories": []
+      },
+      "clearance": {
+        "level": "restricted",
+        "categories": [
+          "research"
+        ]
+      },
+      "name": "Елена"
+    },
+    "vault/research": {
+      "type": "database",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "restricted",
+        "categories": [
+          "research"
+        ]
+      },
+      "required_controls": [
+        "filter"
+      ],
+      "name": "База исследований"
+    },
+    "public/archive": {
+      "type": "storage",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "public",
+        "categories": []
+      },
+      "name": "Публичный архив"
+    },
+    "guard-alpha": {
+      "type": "firewall",
+      "enabled": false,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "name": "Фильтр"
+    },
+    "audit@service": {
+      "type": "service",
+      "enabled": false,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "name": "Журнал"
+    },
+    "event:download": {
+      "type": "event",
+      "event_possible": true,
+      "logging_required": true,
+      "name": "Событие загрузки"
+    }
+  },
+  "edges": [
+    {
+      "id": "legacy-interface",
+      "type": "access",
+      "source": "analyst:Елена",
+      "target": "vault/research",
+      "subject": "analyst:Елена",
+      "operations": [
+        "read"
+      ],
+      "allowed": true,
+      "enabled": true
+    },
+    {
+      "id": "fallback-interface",
+      "type": "access",
+      "source": "analyst:Елена",
+      "target": "vault/research",
+      "subject": "analyst:Елена",
+      "operations": [
+        "read"
+      ],
+      "allowed": true,
+      "enabled": true
+    },
+    {
+      "id": "publish-copy",
+      "type": "copy",
+      "source": "vault/research",
+      "target": "public/archive",
+      "subject": "analyst:Елена",
+      "allowed": true,
+      "enabled": true
+    },
+    {
+      "id": "filter-coverage",
+      "type": "protection",
+      "source": "guard-alpha",
+      "target": "vault/research",
+      "control": "filter"
+    },
+    {
+      "id": "audit-delivery",
+      "type": "logger",
+      "source": "audit@service",
+      "target": "event:download"
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "analyst:Елена",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "analyst:Елена",
+        "write",
+        "default",
+        "flow"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "cover",
+      "args_prefix": [
+        "vault/research",
+        "filter"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "logger",
+      "args_prefix": [
+        "event:download"
+      ],
+      "complete": true
+    }
+  ],
+  "policy": {
+    "default": "unknown",
+    "denies": [
+      {
+        "subject": "analyst:Елена",
+        "object": "vault/research",
+        "operations": [
+          "read"
+        ]
+      }
+    ]
+  },
+  "security_policy": {
+    "enabled": true,
+    "confidentiality_levels": [
+      "public",
+      "restricted"
+    ],
+    "categories": [
+      "research"
+    ],
+    "integrity_enabled": false,
+    "declassifications": []
+  },
+  "repair_policy": {
+    "allowed_operations": [
+      {
+        "operation": "revoke_access",
+        "edges": [
+          "legacy-interface",
+          "fallback-interface",
+          "publish-copy"
+        ],
+        "cost": 1
+      },
+      {
+        "operation": "enable_control",
+        "nodes": [
+          "guard-alpha",
+          "audit@service"
+        ],
+        "cost": 1
+      }
+    ]
+  },
+  "assumptions": []
+}

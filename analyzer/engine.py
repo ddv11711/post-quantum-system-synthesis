@@ -8,12 +8,14 @@ from itertools import combinations
 from time import perf_counter
 from .logic import TRUE, FALSE, UNKNOWN, truth, negate, conjunction, disjunction, exists, forall, witness_path
 from .model import FactBase, validate_model
+from .mandatory import MandatoryPolicy, MAC_CHECKERS
+from .fls import FLSEvaluator
 
 CHECKERS = {
     "forbidden_operation", "required_operation", "required_function", "protection",
     "authentication", "logging", "redundancy", "recovery", "configuration",
     "incompatible_roles", "authorized_change", "crypto", "quantum", "evidence",
-}
+} | MAC_CHECKERS
 
 
 def _equality(actual, expected):
@@ -26,9 +28,11 @@ class Engine:
     def __init__(self, model):
         self.model = model
         self.facts = FactBase(model)
+        self.fls = FLSEvaluator(model, fact_index=self.facts.index)
         self.nodes = model.get("nodes", {})
         self.availability, self.iterations = self._availability()
         self.cache = {}  # Per immutable analysis snapshot and full context.
+        self.channel_cache = {}  # FLS route state is shared by contextual queries in this snapshot.
         self.derivations = []
 
     def _availability(self):
@@ -41,7 +45,7 @@ class Engine:
             for key in sorted(values):
                 parts = [base[key]]
                 expression = dependencies.get(key, {})
-                if key not in dependencies and not self.facts.complete("dependencies", [key]):
+                if key in self.model.get("incomplete_dependencies", []) or (key not in dependencies and not self.facts.complete("dependencies", [key])):
                     parts.append(UNKNOWN)
                 if "all" in expression:
                     parts.append(conjunction(values.get(dep, UNKNOWN) for dep in expression["all"]))
@@ -64,7 +68,7 @@ class Engine:
             value = self.facts.boolean(predicate, [key])
             base.append({"predicate": predicate, "args": [key], "value": value})
         expression = self.model.get("dependencies", {}).get(key, {})
-        complete = key in self.model.get("dependencies", {}) or self.facts.complete("dependencies", [key])
+        complete = (key in self.model.get("dependencies", {}) or self.facts.complete("dependencies", [key])) and key not in self.model.get("incomplete_dependencies", [])
         if not complete:
             self.facts.missing[("dependencies", (key,))] = {"predicate": "dependencies", "args": [key], "reason": "dependency equation absent; alternatives may be incomplete"}
         return {"predicate": "available", "args": [key], "value": self.availability.get(key, UNKNOWN),
@@ -126,8 +130,22 @@ class Engine:
                 conditions.append({"predicate": "present", "args": [transition["via"]]})
             conditions.extend(transition.get("conditions", []))
             evaluated = [dict(condition, result=self.condition(condition)) for condition in conditions]
+            channel_result = None
+            if transition.get("channel"):
+                channel_id = transition["channel"]
+                if channel_id not in self.channel_cache:
+                    self.channel_cache[channel_id] = self.fls.evaluate(channel_id)
+                channel_result = self.channel_cache[channel_id]
+                evaluated.append({"predicate": "fls_channel", "args": [transition["channel"]], "result": channel_result["value"],
+                                  "layers": channel_result["effective_layers"], "route": channel_result["route"]})
+                for index, entry in enumerate(channel_result["evidence"]):
+                    self.facts.used[("fls", transition["channel"], index)] = entry
+                for index, entry in enumerate(channel_result["unknowns"]):
+                    self.facts.missing[("fls", transition["channel"], index)] = entry
             value = conjunction([truth(transition.get("value", "TRUE"))] + [e["result"] for e in evaluated])
             edge = dict(transition, value=value, evaluated_conditions=evaluated)
+            if channel_result is not None:
+                edge["fls_channel"] = channel_result
             all_evaluated.append(edge)
             source_key, target_key = transition["source"], transition["target"]
             if value == TRUE:
@@ -184,6 +202,39 @@ class Engine:
     def check(self, req):
         checker, obj = req["checker"], req.get("object")
         detail = {}
+        if checker == "semantic_readiness":
+            missing = req.get("missing", ["typed transitions", "explicit security requirements"])
+            for field in missing:
+                self.facts.missing[("semantic_readiness", (field,))] = {"predicate": "semantic_readiness", "args": [field], "reason": "raw graph alone does not determine security semantics"}
+            return UNKNOWN, {"missing_semantics": missing}
+        if checker in {"mandatory_access", "label_flow", "clearance"}:
+            policy = MandatoryPolicy(self.model)
+            if policy.enabled == FALSE:
+                return UNKNOWN, {"not_applicable": True, "mandatory": {"applicability": FALSE}}
+            if checker == "clearance":
+                ceiling = policy.clearance(req["subject"])
+                mandatory = {"allowed": ceiling["value"], "clearance": ceiling}
+                value = ceiling["value"] if policy.enabled == TRUE else UNKNOWN
+            else:
+                operation = req.get("operation", "write")
+                scenario = req.get("scenario", "default")
+                source = req.get("source") if checker == "label_flow" else None
+                kind = req.get("kind", "flow" if checker == "label_flow" else "access")
+                actual = self.reachability(req["subject"], obj, operation, scenario, kind, source)
+                mandatory = (policy.flow(req["subject"], source, obj, operation, scenario) if checker == "label_flow"
+                             else policy.access(req["subject"], obj, operation))
+                mandatory["actual"] = actual["value"]
+                value = disjunction([mandatory["allowed"], negate(actual["value"])])
+                detail.update(witness=actual["witness"], scope_complete=actual["scope_complete"])
+            for index, evidence in enumerate(policy.evidence):
+                self.facts.used[("mandatory_policy", index)] = evidence
+            for index, unknown in enumerate(policy.unknowns):
+                self.facts.missing[("mandatory_policy", index)] = unknown
+            mandatory["applicability"] = policy.enabled
+            if policy.enabled == UNKNOWN:
+                value = UNKNOWN
+            detail["mandatory"] = mandatory
+            return value, detail
         if checker in {"forbidden_operation", "required_operation"}:
             path = self.reachability(req["subject"], obj, req["operation"], req.get("scenario", "default"), req.get("kind", "access"), req.get("source"))
             detail["witness"] = path["witness"]
@@ -318,6 +369,8 @@ def analyze(model):
                 value, detail = engine.check(req)
                 if applicability == UNKNOWN:
                     status, reason = "UNKNOWN", "Requirement applicability is unknown"
+                elif detail.get("not_applicable"):
+                    status, reason = "NOT_APPLICABLE", "Mandatory policy is explicitly disabled"
                 elif checker == "evidence" and value == UNKNOWN:
                     status, reason = "REQUIRES_EVIDENCE", "Required documentary evidence has not been provided"
                 else:

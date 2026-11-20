@@ -1,0 +1,250 @@
+{
+  "schema": "component-security-graph/v1",
+  "state": "FLS: ПК1 и ПК2",
+  "profile": "declared-fls-workshop",
+  "nodes": {
+    "analyst:Елена": {
+      "type": "user",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "public",
+        "categories": []
+      },
+      "clearance": {
+        "level": "restricted",
+        "categories": [
+          "research"
+        ]
+      },
+      "name": "Елена",
+      "cluster": "ПК1"
+    },
+    "vault/research": {
+      "type": "database",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "restricted",
+        "categories": [
+          "research"
+        ]
+      },
+      "required_controls": [
+        "filter"
+      ],
+      "name": "База исследований",
+      "cluster": "ПК2"
+    },
+    "public/archive": {
+      "type": "storage",
+      "enabled": true,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "security_label": {
+        "level": "public",
+        "categories": []
+      },
+      "name": "Публичный архив",
+      "cluster": "ПК2"
+    },
+    "guard-alpha": {
+      "type": "firewall",
+      "enabled": false,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "name": "Фильтр",
+      "cluster": "ПК1",
+      "transport_enabled": true,
+      "failure_mode": "normal"
+    },
+    "audit@service": {
+      "type": "service",
+      "enabled": false,
+      "healthy": true,
+      "dependencies": {
+        "all": []
+      },
+      "name": "Журнал",
+      "cluster": "ПК2"
+    },
+    "event:download": {
+      "type": "event",
+      "event_possible": true,
+      "logging_required": true,
+      "name": "Событие загрузки",
+      "cluster": "ПК1"
+    }
+  },
+  "edges": [
+    {
+      "id": "legacy-interface",
+      "type": "access",
+      "source": "analyst:Елена",
+      "target": "vault/research",
+      "subject": "analyst:Елена",
+      "operations": [
+        "read"
+      ],
+      "allowed": true,
+      "enabled": true,
+      "channel": "workstation-link"
+    },
+    {
+      "id": "fallback-interface",
+      "type": "access",
+      "source": "analyst:Елена",
+      "target": "vault/research",
+      "subject": "analyst:Елена",
+      "operations": [
+        "read"
+      ],
+      "allowed": true,
+      "enabled": true,
+      "channel": "workstation-link"
+    },
+    {
+      "id": "publish-copy",
+      "type": "copy",
+      "source": "vault/research",
+      "target": "public/archive",
+      "subject": "analyst:Елена",
+      "allowed": true,
+      "enabled": true,
+      "channel": "archive-link"
+    },
+    {
+      "id": "filter-coverage",
+      "type": "protection",
+      "source": "guard-alpha",
+      "target": "vault/research",
+      "control": "filter"
+    },
+    {
+      "id": "audit-delivery",
+      "type": "logger",
+      "source": "audit@service",
+      "target": "event:download"
+    },
+    {
+      "id": "workstation-link",
+      "type": "interaction",
+      "source": "analyst:Елена",
+      "target": "vault/research",
+      "layers": {
+        "physical": true,
+        "syntactic": true,
+        "semantic": true
+      },
+      "bidirectional": true,
+      "protection_via": [
+        "guard-alpha"
+      ]
+    },
+    {
+      "id": "archive-link",
+      "type": "interaction",
+      "source": "vault/research",
+      "target": "public/archive",
+      "layers": {
+        "physical": true,
+        "syntactic": true,
+        "semantic": true
+      },
+      "bidirectional": true
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "analyst:Елена",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "analyst:Елена",
+        "write",
+        "default",
+        "flow"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "cover",
+      "args_prefix": [
+        "vault/research",
+        "filter"
+      ],
+      "complete": true
+    },
+    {
+      "predicate": "logger",
+      "args_prefix": [
+        "event:download"
+      ],
+      "complete": true
+    }
+  ],
+  "policy": {
+    "default": "unknown",
+    "denies": [
+      {
+        "subject": "analyst:Елена",
+        "object": "vault/research",
+        "operations": [
+          "read"
+        ]
+      }
+    ]
+  },
+  "security_policy": {
+    "enabled": true,
+    "confidentiality_levels": [
+      "public",
+      "restricted"
+    ],
+    "categories": [
+      "research"
+    ],
+    "integrity_enabled": false,
+    "declassifications": []
+  },
+  "repair_policy": {
+    "allowed_operations": [
+      {
+        "operation": "revoke_access",
+        "edges": [
+          "legacy-interface",
+          "fallback-interface",
+          "publish-copy"
+        ],
+        "cost": 1
+      },
+      {
+        "operation": "enable_control",
+        "nodes": [
+          "guard-alpha",
+          "audit@service"
+        ],
+        "cost": 1
+      }
+    ]
+  },
+  "assumptions": []
+}

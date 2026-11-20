@@ -18,7 +18,7 @@ from .transitions import apply_actions
 from .visualization import build_graph
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ROOT / "data" / "sources"
+SOURCES = ROOT / "data" / "sources" / "Shablon1"
 EXAMPLES = ROOT / "examples"
 _REPAIR_LOCK = Lock()  # Z3's default context is shared within this Python process.
 
@@ -100,13 +100,14 @@ def _expected_real(state, closed):
     return expected
 
 
-def run_scenario(scenario_id, *, repair=False, closed_inventory=False):
+def run_scenario(scenario_id, *, repair=False, closed_inventory=False, sources_dir=None):
     """Execute a trusted named scenario with explicitly selected assumptions."""
     if scenario_id not in _BY_ID:
         raise KeyError(scenario_id)
     if not isinstance(repair, bool) or not isinstance(closed_inventory, bool):
         raise ValueError("Параметры repair и closed_inventory должны быть boolean.")
     descriptor = _BY_ID[scenario_id]
+    source_folder = Path(sources_dir) if sources_dir is not None else SOURCES
     if repair and not descriptor["can_repair"]:
         raise ValueError("Для этого сценария каталог исправлений не задан.")
     # Ignore neither scope nor consent: unrelated options have no effect and
@@ -133,9 +134,9 @@ def run_scenario(scenario_id, *, repair=False, closed_inventory=False):
         verify_state("fixture", dict(zip([r["id"] for r in model["requirements"]], expected_values)))
         report["assumptions"] = model.get("assumptions", [])
     else:
-        html = load_html(SOURCES / "graf-svyazey-pk.html", "html_baseline")
+        html = load_html(next(file for file in source_folder.iterdir() if file.suffix.lower() in {".html", ".htm"}), "html_baseline")
         if scenario_id == "source_comparison":
-            xlsx = load_xlsx(SOURCES / "Четыре_конфигурации_ПК_уязвим.xlsx", "xlsx_description")
+            xlsx = load_xlsx(next(source_folder.glob("*.xlsx")), "xlsx_description")
             comparison = compare_sources(html, xlsx)
             report["states"] = {"html": _state(imported_model(html)), "xlsx": _state(imported_model(xlsx))}
             report["comparison"] = comparison
@@ -155,19 +156,19 @@ def run_scenario(scenario_id, *, repair=False, closed_inventory=False):
                                      "write_not_created": "PASS", "crypto_document": "REQUIRES_EVIDENCE"})
             report["assumptions"] = model["assumptions"]
         else:
-            baseline = apply_profile(imported_model(html), EXAMPLES / "demo_profile.json")
+            baseline = apply_profile(imported_model(html), (source_folder / "demo_profile.json" if (source_folder / "demo_profile.json").exists() else EXAMPLES / "demo_profile.json"))
             report["states"]["baseline"] = _state(baseline)
             verify_state("baseline", _expected_real("baseline", effective_closed))
             model = baseline
             if scenario_id in {"changed", "experiment"}:
-                xlsx = load_xlsx(SOURCES / "Четыре_конфигурации_ПК_уязвим.xlsx", "xlsx_changed")
+                xlsx = load_xlsx(next(source_folder.glob("*.xlsx")), "xlsx_changed")
                 comparison = compare_sources(html, xlsx, effective_closed, as_states=True)
                 model = comparison_model(baseline, xlsx, comparison)
                 report["comparison"] = comparison
                 report["states"]["changed"] = _state(model)
                 verify_state("changed", _expected_real("changed", effective_closed))
             if scenario_id == "experiment":
-                spec = _read(EXAMPLES / "experiment_actions.json")
+                spec = _read((source_folder / "experiment_actions.json" if (source_folder / "experiment_actions.json").exists() else EXAMPLES / "experiment_actions.json"))
                 model = apply_actions(model, spec["actions"], new_state="declared_experiment")
                 model["assumptions"].append({"kind": "demo_assumption", "description": spec["description"],
                                              "file": "examples/experiment_actions.json"})

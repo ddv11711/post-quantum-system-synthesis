@@ -5,19 +5,20 @@ from tempfile import TemporaryDirectory
 from zipfile import BadZipFile, ZipFile
 
 from django.conf import settings
-from django.http import FileResponse, Http404
-from django.views.decorators.http import require_GET
 from django.core.exceptions import RequestDataTooBig
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
 
 from analyzer.engine import analyze
+from analyzer.model import validate_model
 from analyzer.importers import ImportFormatError, load_html, load_xlsx
 from analyzer.profiles import imported_model
 from analyzer.repairs import find_repairs, validate_repair, preserve_protected_resources
 from analyzer.scenarios import _REPAIR_LOCK
+from analyzer.reporting import analysis_scope
+from .template_registry import list_templates, resolve_template
 
 MAX_UPLOAD_BYTES = 32 * 1024 * 1024
 
@@ -25,6 +26,7 @@ MAX_UPLOAD_BYTES = 32 * 1024 * 1024
 DOCUMENTS_DIR = settings.BASE_DIR / "documents" / "normative"
 
 
+@ensure_csrf_cookie
 def landing(request):
     DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -40,7 +42,8 @@ def landing(request):
     documents.sort(key=lambda item: item["title"].casefold())
 
     return render(request, "core/landing.html", {
-        "documents": documents
+        "documents": documents,
+        "templates": list_templates(),
     })
 
 
@@ -68,8 +71,39 @@ def download_normative(request, filename):
 
 
 @ensure_csrf_cookie
+@require_http_methods(['GET', 'POST'])
 def index(request):
-    return render(request, "core/index.html")
+    """Support both existing templates and independently uploaded graphs."""
+    context = {'selected_template': '', 'uploaded_mode': False}
+    if request.method == 'POST':
+        # The teammate's direct multipart import remains available without
+        # storing files on disk or in the session.
+        response = analyze_upload(request)
+        payload = json.loads(response.content)
+        if response.status_code == 200:
+            context['initial_report'] = payload
+        else:
+            context['initial_error'] = payload.get('error', 'Не удалось загрузить файл.')
+        try:
+            upload = request.FILES.get('file')
+        except RequestDataTooBig:
+            upload = None
+        context['initial_filename'] = upload.name if upload else ''
+        context['uploaded_mode'] = True
+        return render(request, 'core/index.html', context, status=response.status_code)
+
+    source = request.GET.get('source')
+    template_name = request.GET.get('template')
+    if source == 'upload':
+        context['uploaded_mode'] = True
+    elif template_name:
+        template = resolve_template(template_name)
+        if template is None:
+            return redirect('home')
+        context['selected_template'] = template.name
+    # Direct /analysis/ shows the analyser with an upload field; no
+    # hidden demo or arbitrary default template is executed.
+    return render(request, 'core/index.html', context)
 
 
 @ensure_csrf_cookie
@@ -88,7 +122,8 @@ def _model_shape(model):
         raise ValueError("Каждая запись nodes должна быть объектом.")
     if not isinstance(model.get("dependencies", {}), dict):
         raise ValueError("Поле dependencies должно быть объектом.")
-    if len(model["nodes"]) > 5000 or len(model.get("transitions", [])) > 20000 or len(model.get("facts", [])) > 100000:
+    if (len(model["nodes"]) > 5000 or len(model.get("transitions", [])) > 20000
+            or len(model.get("facts", [])) > 100000 or len(model.get("requirements", [])) > 10000):
         raise ValueError("Превышен размер интерактивной модели; используйте CLI.")
 
 
@@ -96,12 +131,27 @@ def _graph_state(model, analysis=None):
     """Keep source semantics and the presentation graph separate."""
     from analyzer.visualization import build_graph
     analysis = analyze(model) if analysis is None else analysis
-    return {"model": model, "analysis": analysis, "graph": build_graph(model, analysis)}
+    return {"model": model, "analysis": analysis, "graph": build_graph(model, analysis),
+            "scope": analysis_scope(model, analysis)}
 
 
 def _json_input(payload):
     if not isinstance(payload, dict):
         raise ValueError("Корневое значение JSON должно быть объектом.")
+    if payload.get('kind') == 'structural_profile':
+        from analyzer.structural_profiles import PROFILE_ID, compile_mandate_flows
+        if set(payload) != {'kind', 'profile', 'graph'} or payload['profile'] != PROFILE_ID:
+            raise ValueError('Выберите поддерживаемый профиль для исходного графа.')
+        model = compile_mandate_flows(payload['graph'])
+        _model_shape(model)
+        filename = payload['graph'].get('metadata', {}).get('uploaded_filename', '')
+        if not isinstance(filename, str):
+            raise ValueError('Имя исходного файла должно быть строкой.')
+        return {'kind': 'analysis_bundle', 'display_mode': 'fresh_analysis',
+                'filename': filename, 'states': {'imported': _graph_state(model)},
+                'assumptions': model['assumptions'], 'profile': model['detected_profile'],
+                'notice': 'Выбран профиль мандатных потоков. Проверены прямые передачи между узлами с метками. '
+                          'Стрелки трактуются как потоки данных; права доступа и допуски этим профилем не проверяются.'}
     if payload.get("kind") == "analysis_bundle":
         states = payload.get("states")
         if not isinstance(states, dict) or not states or len(states) > 32:
@@ -120,11 +170,46 @@ def _json_input(payload):
         # An existing report is shown, never confused with a freshly verified model.
         return {**payload, "states": display_states, "display_mode": "saved_report", "notice": "Загружен сохраненный отчет. Результаты показаны без повторного вычисления."}
     model = payload.get("model", payload)
+    from analyzer.portable import is_portable, load_portable
+    if is_portable(model):
+        model = load_portable(model)
+        if 'repair_policy' in model and not validate_model(model):
+            from analyzer.remediation import attach_repair_catalog
+            model = attach_repair_catalog(model, model['repair_policy'])
     _model_shape(model)
     return {"kind": "analysis_bundle", "display_mode": "fresh_analysis",
             "states": {"uploaded": _graph_state(model)},
             "assumptions": model.get("assumptions", []),
-            "notice": "Модель повторно проверена. Профиль, политика и допущения взяты из JSON."}
+                  "notice": "Модель проверена. Требования построены по явно заданным типам, политике и меткам."}
+
+
+def _structural_input(graph):
+    from analyzer.structural_profiles import detect_mandate_profile
+    profile = detect_mandate_profile(graph)
+    # In the confirmed cluster-workbook convention, non-marker arrows are data
+    # transfers. Keep other structural formats strict, and never choose one of
+    # conflicting mandate assignments merely to obtain a result.
+    if (graph.get('format') == 'xlsx' and graph['metadata'].get('scope_column') == 'Кластер'
+            and profile and profile['can_apply']):
+        result = _json_input({'kind': 'structural_profile', 'profile': profile['id'], 'graph': graph})
+        result.update(import_metadata=graph['metadata'], import_issues=graph['issues'], profile_applied='automatic')
+        result['notice'] = ('Распознан Excel с мандатами. Стрелки означают передачу данных; номера мандатов задают порядок уровней. '
+                            'Проверены прямые потоки между размеченными узлами. Связи без меток и неоднозначные ссылки требуют уточнения.')
+        return result
+    model = imported_model(graph)
+    missing = ['Не задан смысл стрелок: взаимодействие, передача данных или разрешение конкретной операции.',
+               'Не выбрана политика или профиль, определяющий допустимые и запрещённые действия.']
+    if profile:
+        missing.append('В графе обнаружены мандаты. Для их проверки выберите профиль и подтвердите трактовку связей.')
+    else:
+        missing.append('Для проверки безопасности нужны типы узлов, права, метки или требования к компонентам.')
+    model['requirements'] = [{'id': 'import:semantic-readiness', 'checker': 'semantic_readiness',
+                              'name': 'Данные для проверки безопасности', 'missing': missing}]
+    return {'kind': 'analysis_bundle', 'display_mode': 'fresh_analysis',
+            'states': {'imported': _graph_state(model)}, 'available_profiles': [profile] if profile else [],
+            'import_metadata': graph['metadata'], 'import_issues': graph['issues'], 'assumptions': [],
+            'notice': 'Граф загружен. Проверка безопасности не выполнена: исходные связи не задают права и требования. '
+                      'Выберите подходящий профиль или загрузите данные с явной политикой.'}
 
 
 @require_POST
@@ -135,6 +220,8 @@ def analyze_upload(request):
             if int(request.META.get("CONTENT_LENGTH") or 0) > MAX_UPLOAD_BYTES:
                 return JsonResponse({"error": "Файл превышает 32 MiB."}, status=413)
             return JsonResponse(_json_input(json.loads(request.body)), json_dumps_params={"ensure_ascii": False})
+        if len(request.FILES.getlist('file')) > 1:
+            return JsonResponse({'error': 'Загрузите один граф за раз.'}, status=400)
         upload = request.FILES.get("file")
         if upload is None:
             return JsonResponse({"error": "Выберите один файл HTML, XLSX или JSON."}, status=400)
@@ -157,16 +244,18 @@ def analyze_upload(request):
                         entries = archive.infolist()
                         if len(entries) > 2048 or sum(item.file_size for item in entries) > MAX_UPLOAD_BYTES:
                             raise ValueError("Распакованный XLSX превышает лимит 32 MiB или 2048 элементов.")
+                    from analyzer.portable_files import is_portable_workbook, load_portable_workbook
+                    if is_portable_workbook(path):
+                        result = _json_input(load_portable_workbook(path))
+                        result['filename'] = filename
+                        return JsonResponse(result, json_dumps_params={"ensure_ascii": False})
                     graph = load_xlsx(path, state="uploaded-xlsx")
                 else:
                     graph = load_html(path, state="uploaded-html")
                 graph["metadata"]["uploaded_filename"] = filename
-                model = imported_model(graph)
-                result = {"kind": "analysis_bundle", "display_mode": "fresh_analysis",
-                          "states": {"imported": _graph_state(model)},
-                          "import_metadata": graph["metadata"], "import_issues": graph["issues"],
-                          "assumptions": [],
-                          "notice": "Строгий импорт: исходные связи не определяют ACL, операции или требования. Без семантического профиля защищенность не установлена; отсутствие находок не означает PASS."}
+                result = _structural_input(graph)
+        if not result.get('filename'):
+            result['filename'] = filename
         return JsonResponse(result, json_dumps_params={"ensure_ascii": False})
     except RequestDataTooBig:
         return JsonResponse({"error": "Превышен лимит тела запроса; передайте JSON как загруженный файл."}, status=413)
@@ -192,10 +281,16 @@ def repair_model(request):
         if not isinstance(payload, dict) or set(payload) != {"model"}:
             raise ValueError("Ожидается объект с единственным полем model.")
         model = payload["model"]
+        from analyzer.portable import is_portable, load_portable
+        if is_portable(model):
+            model = load_portable(model)
+            if 'repair_policy' in model and not validate_model(model):
+                from analyzer.remediation import attach_repair_catalog
+                model = attach_repair_catalog(model, model['repair_policy'])
         _model_shape(model)
         before = analyze(model)
         with _REPAIR_LOCK:
-            repair = find_repairs(model, max_candidates=64, timeout_seconds=10)
+            repair = find_repairs(model, max_candidates=512, timeout_seconds=15)
         states = {"before": _graph_state(model, before)}
         verified = None
         if repair.get("status") in {"OPTIMAL_REPAIR", "VERIFIED_CANDIDATE"} and "repaired_model" in repair:
@@ -218,3 +313,45 @@ def repair_model(request):
         return JsonResponse({"error": "Модель слишком велика для тела JSON; передайте её загруженным файлом."}, status=413)
     except (ValueError, TypeError, KeyError, UnicodeError) as exc:
         return JsonResponse({"error": str(exc)}, status=400, json_dumps_params={"ensure_ascii": False})
+
+
+def _portable_example(name='security'):
+    filenames = {'security': 'mixed_security.json', 'fls': 'fls_clusters.json'}
+    if name not in filenames:
+        raise ValueError('Неизвестный пример графа.')
+    path = Path(__file__).resolve().parents[1] / 'examples' / 'portable' / filenames[name]
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+@require_POST
+def graph_example(request):
+    """An explicitly named example goes through the same path as uploaded graphs."""
+    try:
+        options = json.loads(request.body or b'{}')
+        if not isinstance(options, dict) or set(options) - {'example'}:
+            raise ValueError('Укажите только имя примера в поле example.')
+        name = options.get('example', 'security')
+        if not isinstance(name, str):
+            raise ValueError('Имя примера должно быть строкой.')
+        result = _json_input(_portable_example(name))
+    except (ValueError, UnicodeError) as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    result['filename'] = 'Пример: ПК1, ПК2 и три уровня связи' if name == 'fls' else 'Пример: права, метки и защита'
+    result['example'] = True
+    return JsonResponse(result, json_dumps_params={'ensure_ascii': False})
+
+
+@require_GET
+def download_example(request):
+    try:
+        payload = _portable_example(request.GET.get('example', 'security'))
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    if request.GET.get('format') == 'xlsx':
+        from analyzer.portable_files import portable_workbook
+        response = HttpResponse(portable_workbook(payload), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="security-graph.xlsx"'
+    else:
+        response = JsonResponse(payload, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+        response['Content-Disposition'] = 'attachment; filename="security-graph.json"'
+    return response

@@ -1,163 +1,125 @@
-
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f2f2f2">
     <title>BIGVIZOV — Система анализа</title>
-
-    <link rel="stylesheet"
-          href="{% static 'core/css/landing.css' %}">
-
-    <script defer
-            src="{% static 'core/js/landing.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'core/css/landing.css' %}">
+    <script defer src="{% static 'core/js/landing.js' %}"></script>
 </head>
 <body>
-
 <div class="screen-container">
-
-    <!-- ГЛАВНАЯ СТРАНИЦА -->
-    <main class="landing page-screen is-active"
-          id="home-screen">
-
-        <section class="intro">
-            <div class="art-crop">
-                <img
-                    src="{% static 'core/img/landing-art.svg' %}"
-                    alt=""
-                    draggable="false"
-                >
+    <main class="landing page-screen is-active" id="home-screen">
+        <section class="intro" aria-label="Графика системы">
+            <div class="art-crop" aria-hidden="true">
+                <img src="{% static 'core/img/landing-art.svg' %}" alt="" draggable="false">
             </div>
         </section>
-
-        <section class="actions">
-
+        <section class="actions" aria-label="Импорт и запуск анализа">
             <div class="upload-panel">
                 <span class="upload-title">Импорт</span>
-
-                <label class="upload-target"
-                       for="model-file"
-                       id="upload-target">
-
-                    <input
-                        id="model-file"
-                        type="file"
-                        accept=".json,.html,.htm,.xlsx,.zip"
-                    >
-
-                    <span id="file-hint">
-                        Добавить файл
+                <label class="upload-target" for="model-file" id="upload-target">
+                    <input id="model-file" type="file" accept=".json,.html,.htm,.xlsx" aria-describedby="file-hint upload-description">
+                    <span class="upload-content">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 16V4M8 8l4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+                        </svg>
+                        <span id="file-hint">Добавить файл</span>
                     </span>
+                    <span id="upload-description" class="upload-description">Перетащите файл или нажмите для выбора</span>
                 </label>
             </div>
-
-            <a class="analyze-link"
-               href="{% url 'analysis' %}">
-                Запустить анализ
-            </a>
-
-            <nav class="secondary-links">
-                <span class="placeholder">
-                    Шаблоны
-                </span>
-
-                <button
-                    type="button"
-                    class="normative-open"
-                    id="open-normative">
-                    Нормативная база
-                </button>
+            <button class="analyze-link" type="button" id="choose-template"
+                    data-analysis-url="{% url 'analysis' %}"
+                    data-upload-url="{% url 'analyze-upload' %}">Запустить анализ</button>
+            <p class="import-feedback" id="import-feedback" role="alert" hidden></p>
+            <nav class="secondary-links" aria-label="Дополнительные разделы">
+                <button class="templates-open" type="button" id="open-templates">Шаблоны</button>
+                <button class="normative-open" type="button" id="open-normative">Нормативная база</button>
             </nav>
-
         </section>
     </main>
 
-
-    <!-- НОРМАТИВНАЯ БАЗА -->
-    <main class="landing page-screen normative-screen"
-          id="normative-screen"
-          aria-hidden="true"
-          inert>
-
-        <section class="intro">
-            <div class="art-crop">
-                <img
-                    src="{% static 'core/img/landing-art.svg' %}"
-                    alt=""
-                    draggable="false"
-                >
+    <main class="landing page-screen normative-screen" id="normative-screen" aria-hidden="true" inert>
+        <section class="intro" aria-label="Графика системы">
+            <div class="art-crop" aria-hidden="true">
+                <img src="{% static 'core/img/landing-art.svg' %}" alt="" draggable="false">
             </div>
         </section>
-
         <section class="normative-content">
-
             <fieldset class="documents-panel">
-
-                <legend>Нормативная база</legend>
-
+                <legend>Нормативные документы</legend>
                 <div class="documents-grid">
-
                     {% for document in documents %}
-
-                    <a class="document-item"
-                       href="{% url 'download-normative' document.filename %}"
-                       download>
-
-                        <span class="pdf-icon"
-                              aria-hidden="true">
-                            <svg viewBox="0 0 32 40"
-                                 fill="none">
-                                <path
-                                    d="M4 1H21L29 9V39H4V1Z"
-                                    stroke="currentColor"
-                                    stroke-width="2"/>
-                                <path
-                                    d="M21 1V9H29"
-                                    stroke="currentColor"
-                                    stroke-width="2"/>
-                                <rect x="1" y="20"
-                                      width="25" height="13"
-                                      fill="currentColor"/>
-                                <text x="3" y="29.5"
-                                      font-size="9"
-                                      font-weight="bold"
-                                      fill="#F2F2F2">
-                                    PDF
-                                </text>
-                            </svg>
-                        </span>
-
-                        <span class="document-name">
-                            {{ document.title }}
-                        </span>
-
-                    </a>
-
+                        <a class="document-item" href="{% url 'download-normative' document.filename %}" download>
+                            <span class="pdf-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 40" fill="none">
+                                    <path d="M4 1H21L29 9V39H4V1Z" stroke="currentColor" stroke-width="2" />
+                                    <path d="M21 1V9H29" stroke="currentColor" stroke-width="2" />
+                                    <rect x="1" y="20" width="25" height="13" fill="currentColor" />
+                                    <text x="3" y="29.5" font-size="9" font-weight="bold" fill="#f2f2f2">PDF</text>
+                                </svg>
+                            </span>
+                            <span class="document-name">{{ document.title }}</span>
+                        </a>
                     {% empty %}
-
-                    <p class="empty-documents">
-                        Документы пока не добавлены.
-                    </p>
-
+                        <p class="empty-documents">Документы пока не добавлены.</p>
                     {% endfor %}
-
                 </div>
-
             </fieldset>
-
-            <button class="back-button"
-                    type="button"
-                    id="close-normative">
-                Назад
-            </button>
-
+            <button type="button" class="back-button" id="close-normative">Назад</button>
         </section>
-
     </main>
 
-</div>
 
+    <main class="landing page-screen templates-screen" id="templates-screen" aria-hidden="true" inert>
+        <section class="intro" aria-label="Графика системы">
+            <div class="art-crop" aria-hidden="true">
+                <img src="{% static 'core/img/landing-art.svg' %}" alt="" draggable="false">
+            </div>
+        </section>
+        <section class="templates-content">
+            <fieldset class="templates-panel">
+                <legend>Шаблоны систем</legend>
+                <div class="template-grid" role="radiogroup" aria-label="Выберите шаблон для анализа">
+                    {% for template in templates %}
+                    <label class="template-card{% if not template.valid %} template-card--invalid{% endif %}">
+                        <input type="radio" name="selected-template"
+                               value="{{ template.name }}" {% if not template.valid %}disabled{% endif %}>
+                        <span class="template-card-header">
+                            <span class="template-icon" aria-hidden="true">▦</span>
+                            <span class="template-card-name">{{ template.name }}</span>
+                            <span class="template-check" aria-hidden="true">✓</span>
+                        </span>
+                        {% if template.valid %}
+                        <span class="template-card-stats">
+                            <span><strong>{{ template.pc_count }}</strong> ПК</span>
+                            <span><strong>{{ template.entity_count }}</strong> сущностей</span>
+                        </span>
+                        <span class="template-card-section">Компьютеры</span>
+                        <span class="template-card-details">{{ template.pcs|join:", " }}</span>
+                        <span class="template-card-section">Сущности</span>
+                        <span class="template-card-details template-card-entities">
+                            {{ template.unique_entities|join:", " }}
+                        </span>
+                        {% else %}
+                        <span class="template-card-error">Не удалось прочитать Excel. Проверьте названия столбцов.</span>
+                        {% endif %}
+                    </label>
+                    {% empty %}
+                    <p class="empty-documents">Шаблонов пока нет. Создайте папку с HTML, XLSX и DOCX в data/sources.</p>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="template-actions">
+                <button type="button" class="back-button" id="close-templates">Назад</button>
+                <button type="button" class="analyze-link template-run" id="run-template" data-analysis-url="{% url 'analysis' %}" disabled>Запустить анализ</button>
+            </div>
+            <p class="template-help" id="template-help" role="status">Выберите шаблон, чтобы продолжить.</p>
+        </section>
+    </main>
+</div>
 </body>
 </html>
