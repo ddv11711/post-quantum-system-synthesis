@@ -24,7 +24,7 @@ def client():
 
 
 def csrf(client):
-    response = client.get("/")
+    response = client.get("/analysis/")
     assert response.status_code == 200
     return client.cookies["csrftoken"].value
 
@@ -34,18 +34,60 @@ def upload(client, name, content):
     return client.post("/api/analyze/", {"file": SimpleUploadedFile(name, content)}, HTTP_X_CSRFTOKEN=token)
 
 
-def test_page_uses_one_fixed_graph_scenario_without_configuration_forms(client):
-    response = client.get("/")
+def test_page_uses_one_graph_workspace_with_upload_and_example(client):
+    response = client.get("/analysis/")
     text = response.content.decode()
-    assert 'data-scenario-url="/api/scenario/"' in text
+    assert 'data-example-url="/api/graph-example/"' in text
+    assert 'data-upload-url="/api/analyze/"' in text
     assert 'csrfmiddlewaretoken' in text
     assert 'id="security-graph"' in text
     assert 'id="repair-button"' in text
     assert 'id="before-tab"' in text and 'id="after-tab"' in text
-    assert '<select' not in text and 'type="file"' not in text
+    assert '<select' not in text and 'id="graph-file"' in text
     assert 'href="/tests/"' not in text
     assert 'name="fstec"' not in text
     assert 'name="attack_mode"' not in text
+
+
+def test_landing_links_to_analysis_and_lists_only_available_pdf_documents(client, tmp_path, monkeypatch):
+    from core import views
+    monkeypatch.setattr(views, 'DOCUMENTS_DIR', tmp_path)
+    (tmp_path / 'beta.pdf').write_bytes(b'%PDF-1.4\nbeta')
+    (tmp_path / 'Alpha.PDF').write_bytes(b'%PDF-1.4\nalpha')
+    (tmp_path / 'notes.txt').write_text('Not a downloadable PDF')
+    response = client.get('/')
+    assert response.status_code == 200
+    page = response.content.decode()
+    assert 'href="/analysis/"' in page
+    assert 'id="security-app"' not in page
+    assert 'href="/documents/Alpha.PDF/"' in page
+    assert 'href="/documents/beta.pdf/"' in page
+    assert page.index('/documents/Alpha.PDF/') < page.index('/documents/beta.pdf/')
+    assert 'notes.txt' not in page
+
+
+def test_normative_pdf_download_returns_the_file_and_rejects_other_paths(client, tmp_path, monkeypatch):
+    from core import views
+    documents = tmp_path / 'normative'
+    documents.mkdir()
+    monkeypatch.setattr(views, 'DOCUMENTS_DIR', documents)
+    content = b'%PDF-1.4\nKnown normative document\n%%EOF'
+    (documents / 'standard.pdf').write_bytes(content)
+    (documents / 'notes.txt').write_text('Not a PDF')
+    outside = tmp_path / 'outside.pdf'
+    outside.write_bytes(b'%PDF-1.4\nOutside the allowed directory')
+    (documents / 'outside-link.pdf').symlink_to(outside)
+
+    response = client.get('/documents/standard.pdf/')
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/pdf'
+    assert 'attachment;' in response['Content-Disposition']
+    assert 'standard.pdf' in response['Content-Disposition']
+    assert b''.join(response.streaming_content) == content
+    response.close()
+    for path in ('missing.pdf', 'notes.txt', 'outside-link.pdf', '../outside.pdf'):
+        assert client.get('/documents/' + path + '/').status_code == 404
+    assert client.post('/documents/standard.pdf/', HTTP_X_CSRFTOKEN=csrf(client)).status_code == 405
 
 
 def test_csrf_is_required_for_analyze(client):
@@ -68,10 +110,10 @@ def test_structural_upload_preserves_strict_unknown_semantics(client, filename, 
     assert payload["import_metadata"]["edge_count"] == edges
     assert state["model"]["profile"] == "strict"
     assert state["model"]["transitions"] == []
-    assert state["model"]["requirements"] == []
-    assert state["analysis"]["summary"] == {}
+    assert [r['checker'] for r in state['model']['requirements']] == ['semantic_readiness']
+    assert state["analysis"]["summary"] == {'UNKNOWN': 1}
     assert payload["assumptions"] == []
-    assert "отсутствие находок не означает PASS" in payload["notice"]
+    assert "Проверка безопасности не выполнена" in payload["notice"]
 
 
 def test_json_model_rechecks_public_engine_with_file_policy(client):

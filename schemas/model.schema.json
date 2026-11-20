@@ -124,6 +124,55 @@
           "$ref": "#/$defs/provenance"
         }
       }
+    },
+    "security_policy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "integrity_enabled": {
+          "type": "boolean"
+        },
+        "confidentiality_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "integrity_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "declassifications": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "incomplete_dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "fls_channels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fls_channel"
+      }
     }
   },
   "additionalProperties": true,
@@ -188,7 +237,10 @@
           "minLength": 1
         },
         "id": {
-          "type": "integer"
+          "type": [
+            "string",
+            "integer"
+          ]
         },
         "pc": {
           "type": [
@@ -222,6 +274,15 @@
           "items": {
             "$ref": "#/$defs/provenance"
           }
+        },
+        "security_label": {
+          "$ref": "#/$defs/security_label"
+        },
+        "integrity_label": {
+          "$ref": "#/$defs/security_label"
+        },
+        "clearance": {
+          "$ref": "#/$defs/security_label"
         }
       },
       "additionalProperties": true
@@ -1782,6 +1843,32 @@
           },
           "additionalProperties": true
         }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "predicate": {
+                "const": "failure_mode"
+              }
+            },
+            "required": [
+              "predicate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": [
+                  "normal",
+                  "fail_open",
+                  "fail_closed",
+                  "UNKNOWN"
+                ]
+              }
+            }
+          }
+        }
       ]
     },
     "ground_key": {
@@ -2079,6 +2166,10 @@
         "grant_roles": {
           "type": "array",
           "maxItems": 0
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": true
@@ -2519,6 +2610,61 @@
               "object"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "mandatory_access"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "object",
+              "operation"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "label_flow"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject",
+              "source",
+              "object"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checker": {
+                "const": "clearance"
+              }
+            },
+            "required": [
+              "checker"
+            ]
+          },
+          "then": {
+            "required": [
+              "subject"
+            ]
+          }
         }
       ],
       "additionalProperties": true
@@ -2672,6 +2818,98 @@
             "TRUE",
             "FALSE",
             "UNKNOWN"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "security_label": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "minLength": 1
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "fls_channel": {
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layers": {
+          "type": "object",
+          "properties": {
+            "physical": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN"
+              ]
+            },
+            "syntactic": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN"
+              ]
+            },
+            "semantic": {
+              "enum": [
+                "TRUE",
+                "FALSE",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "protection_via": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "original_channel_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "enum": [
+            "forward",
+            "reverse"
           ]
         },
         "provenance": {

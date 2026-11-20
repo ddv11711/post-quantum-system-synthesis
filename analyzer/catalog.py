@@ -15,6 +15,8 @@ from typing import Any
 from xml.etree import ElementTree
 from zipfile import ZipFile
 
+from .logic import TRUE, FALSE, UNKNOWN, disjunction, negate
+
 
 FIELD_LABELS = {
     "Применимость": "applicability",
@@ -47,6 +49,7 @@ MAPPING_IDS = {
     "authorized_change": "FT007 FT008 FT054 FT084 FT142 HW007 BK012 BK024",
     "crypto": "FT016 FT035 FT036 FT037 FT043 NT005 NT007 PR003 DT004 CR027 CR028 CR030 BK005 BK017 BK026 BK040 CR045",
     "quantum": "CR040 CR041 CR044 DT011 DT012",
+    "label_flow": "FT025",
 }
 
 UNSUPPORTED_REASONS = {
@@ -63,6 +66,15 @@ UNSUPPORTED_REASONS = {
 
 
 FORMALIZATIONS = {
+    "label_flow": {
+        "condition": "ActualFlow(subject, source, destination, write, scenario) AND NOT (ConfidentialityLabel(destination) dominates ConfidentialityLabel(source) OR ExactAuthorizedDeclassification(subject, source, destination, write, scenario, both_labels))",
+        "input_facts": ["explicit source-to-copy or source-to-recipient flow", "context-preserving actual flow transitions and gates", "source and destination confidentiality labels with level and categories", "declared finite level order", "exact authorized declassification if present"],
+        "completeness_scope": "declared source/destination transfer and subject/write/scenario flow context; full transition scope is required to prove absence of a forbidden flow; compile every explicit data-bearing transfer",
+        "explanation": "A confirmed transfer to a destination that fails to preserve source classification or compartments violates this fragment unless an exact declared declassification authorizes it. Unknown labels remain UNKNOWN; clearance-only or integrity-only failures do not prove this confidentiality fragment.",
+        "repair_templates": ["revoke an explicitly mutable actual ACL or close an authorized flow gate while preserving required operations; classification, clearance and declassification policy are immutable"],
+        "covered_scope": "Confidentiality classification and compartment preservation on explicitly declared transfers/copies, including exact declared exceptions. Other security attributes, transformations, undeclared intermediate copies or external recipients, document approval and organizational inheritance procedures are not covered; no automatic relabeling or dynamic taint analysis.",
+        "result_projection": "FT025 uses actual flow and confidentiality preservation only; local clearance/integrity results remain separate findings",
+    },
     "forbidden_operation": {
         "condition": "CanPerform(subject, object, operation, scenario) AND Forbidden(subject, object, operation, scenario)",
         "input_facts": ["context-preserving transitions", "actual ACL", "subject foothold", "component availability", "immutable forbidden operation"],
@@ -220,7 +232,7 @@ def _mapping(rule: dict[str, Any]) -> dict[str, Any]:
         "mapping_provenance": {"file": "analyzer/catalog.py", "kind": "declared", "transformation": "explicit reviewed rule-ID to finite checker mapping", "version": "1"},
         "reason": reason,
         "checkers": [{"checker": name, **FORMALIZATIONS[name],
-                      "test_refs": ["tests/test_engine.py", "tests/test_catalog.py"]}
+                      "test_refs": ["tests/test_engine.py", "tests/test_catalog.py"] + (["tests/test_mandatory.py"] if name == "label_flow" else [])}
                      for name in checkers],
         "uncovered_conditions": "Применимость, исходные нужные данные и условия вне covered_scope каждого фрагмента требуют отдельной проверки. " + fields.get("unknown_condition", ""),
         "evidence_required_by_source": needs_evidence,
@@ -300,6 +312,34 @@ def load_catalog(path: str | Path) -> dict[str, Any]:
     }
 
 
+def _catalog_fragment(rule_id: str, result: dict[str, Any]) -> dict[str, Any]:
+    """Project a multi-condition checker onto the fragment actually mapped.
+
+    FT025 is not established by a subject-clearance defect or strict-Biba defect:
+    its implemented fragment concerns confidentiality label preservation only.
+    """
+    if rule_id != "FT025" or result.get("checker") != "label_flow":
+        return result
+    projected = dict(result, source_status=result.get("status"),
+                     projection="FT025: actual flow and confidentiality label preservation only")
+    if result.get("status") in {"MODEL_ERROR", "NOT_CHECKED", "NOT_APPLICABLE", "REQUIRES_EVIDENCE"}:
+        return projected
+    mandatory = result.get("mandatory", {})
+    applies = mandatory.get("applicability", "UNKNOWN")
+    if applies != "TRUE" or result.get("applicability", "TRUE") != "TRUE":
+        projected["status"] = "NOT_APPLICABLE" if applies == "FALSE" else "UNKNOWN"
+        return projected
+    actual = mandatory.get("actual", "UNKNOWN")
+    preserved = mandatory.get("confidentiality", {}).get("value", "UNKNOWN")
+    if actual not in {"TRUE", "FALSE", "UNKNOWN"} or preserved not in {"TRUE", "FALSE", "UNKNOWN"}:
+        projected["status"] = "UNKNOWN"
+        return projected
+    compliance = disjunction([preserved, negate(actual)])
+    projected["status"] = {TRUE: "PASS", FALSE: "FAIL", UNKNOWN: "UNKNOWN"}[compliance]
+    projected["reason"] = "FT025 fragment evaluates only preservation of confidentiality labels on the actual declared transfer; other local constraints remain separate."
+    return projected
+
+
 def coverage(catalog: dict[str, Any], analysis: dict[str, Any] | None = None,
              applicability: dict[str, str] | None = None) -> dict[str, Any]:
     """Account for every ID; PASS requires explicit complete scope and applicability.
@@ -314,7 +354,7 @@ def coverage(catalog: dict[str, Any], analysis: dict[str, Any] | None = None,
     for rule in catalog["rules"]:
         rule_id = rule["rule_id"]
         formalization = rule["formalization"]
-        linked = [r for r in results if r.get("rule_id") == rule_id or
+        linked = [_catalog_fragment(rule_id, r) for r in results if r.get("rule_id") == rule_id or
                   rule_id in r.get("catalog_rule_ids", [])]
         applies = str(applicability.get(rule_id, "UNKNOWN")).upper()
         if applies not in {"TRUE", "FALSE", "UNKNOWN"}:
@@ -356,7 +396,8 @@ def coverage(catalog: dict[str, Any], analysis: dict[str, Any] | None = None,
             "checkers": [c["checker"] for c in formalization["checkers"]],
             "whole_rule_implemented": formalization["whole_rule_implemented"],
             "requires_evidence": formalization["evidence_required_by_source"],
-            "evaluated_fragments": [{k: result.get(k) for k in ("id", "rule_id", "checker", "status", "object", "reason")}
+            "evaluated_fragments": [{**{k: result.get(k) for k in ("id", "rule_id", "checker", "status", "object", "reason")},
+                                     **{k: result[k] for k in ("source_status", "projection") if k in result}}
                                     for result in linked],
             "uncovered_conditions": formalization["uncovered_conditions"],
         })

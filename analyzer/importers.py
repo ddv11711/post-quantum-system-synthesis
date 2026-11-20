@@ -14,6 +14,9 @@ import json
 from pathlib import Path
 import re
 from typing import Any, Iterable
+from urllib.parse import quote
+
+from .workbook import WorkbookFormatError, read_bounded_rows
 
 
 # This is an explicit vocabulary for shared scope, not an ID-to-security-type map.
@@ -159,6 +162,28 @@ def _resolve(reference: str, pc: str | None, by_name: dict, by_scope: dict,
     return sorted(by_name.get(reference, [])), "unqualified_shared_reference", None, reference
 
 
+def _resolve_cluster(reference, scope, by_name, by_scope, shared_registry, qualified_scopes):
+    """Cluster-sheet references use declared scopes, never a global PC wildcard."""
+    for candidate_scope in qualified_scopes:
+        prefix = candidate_scope + " / "
+        if reference.startswith(prefix):
+            name = reference[len(prefix):]
+            return sorted(by_scope.get((candidate_scope, name), [])), "qualified", candidate_scope, name
+    match = re.fullmatch(r"(ПК [1-9]\d*)\s*/\s*(.+)", reference)
+    if match:
+        target_scope, name = match.groups()
+        return sorted(by_scope.get((target_scope, name), [])), "qualified", target_scope, name
+    local = sorted(by_scope.get((scope, reference), []))
+    if local:
+        return local, "local_cluster", scope, reference
+    if reference in shared_registry:
+        return sorted(shared_registry[reference]), "declared_non_pc_registry", None, reference
+    if scope is not None and re.fullmatch(r"ПК [1-9]\d*", scope):
+        return [], "local_scope", scope, reference
+    candidates = sorted(by_name.get(reference, []))
+    return candidates, "unqualified_shared_reference" if candidates else "unresolved_cluster_reference", None, reference
+
+
 def load_xlsx(path: str | Path, state: str = "xlsx", *,
               global_names: Iterable[str] = GLOBAL_NAMES) -> dict:
     """Read rows independently; merge incoming/outgoing declarations with provenance.
@@ -168,6 +193,7 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
     as issues and never create nodes or edges.
     """
     from openpyxl import load_workbook
+    from openpyxl.cell.read_only import EMPTY_CELL
 
     path = Path(path)
     global_names = frozenset(global_names)
@@ -176,14 +202,16 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
         if workbook.sheetnames != ["Конфигурации ПК"]:
             raise ImportFormatError(f"Expected one sheet 'Конфигурации ПК', got {workbook.sheetnames!r}")
         sheet = workbook["Конфигурации ПК"]
-        if sheet.max_column != 5:
-            raise ImportFormatError(f"Expected exactly columns A:E, got {sheet.max_column} columns")
-        rows = list(sheet.iter_rows(min_col=1, max_col=5))
-        if not rows or tuple(cell.value for cell in rows[0]) != HEADERS:
-            raise ImportFormatError(f"Expected A1:E1 headers {HEADERS!r}")
-        formulas = [cell.coordinate for row in rows for cell in row if cell.data_type == "f"]
-        if formulas:
-            raise ImportFormatError(f"Formula cells are unsupported: {', '.join(formulas)}")
+        try:
+            actual_rows = read_bounded_rows(sheet, max_rows=10001, max_columns=5)
+        except WorkbookFormatError as exc:
+            raise ImportFormatError(str(exc)) from exc
+        headers = tuple(cell.value for cell in actual_rows[0]) if actual_rows else ()
+        cluster_headers = ("Кластер", *HEADERS[1:])
+        if headers not in (HEADERS, cluster_headers):
+            raise ImportFormatError(f"Expected A1:E1 headers {HEADERS!r} or {cluster_headers!r}, got {headers!r}")
+        cluster_mode = headers == cluster_headers
+        rows = [tuple(row) + (EMPTY_CELL,) * (5 - len(row)) for row in actual_rows]
         nodes: dict[str, dict] = {}
         row_records = []
         for row_number, row in enumerate(rows[1:], start=2):
@@ -196,8 +224,17 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
             name = _normalise_name(name_raw)
             if not name:
                 raise ImportFormatError(f"C{row_number}: empty entity name")
-            pc = _scope(pc_raw, name, global_names)
-            key = f"g:{identifier}" if pc is None else f"{pc.split()[1]}:{identifier}"
+            if cluster_mode:
+                scope = _normalise_name(pc_raw) or None
+                pc = scope if scope and re.fullmatch(r"ПК [1-9]\d*", scope) else None
+                if scope is None:
+                    _scope(pc_raw, name, global_names)  # no implicit inheritance for blank clusters
+                key = (f"{pc.split()[1]}:{identifier}" if pc else
+                       f"c:{quote(scope, safe='')}:{identifier}" if scope else f"g:{identifier}")
+            else:
+                pc = _scope(pc_raw, name, global_names)
+                scope = pc
+                key = f"g:{identifier}" if pc is None else f"{pc.split()[1]}:{identifier}"
             if key in nodes:
                 raise ImportFormatError(f"Duplicate key {key} at {row[1].coordinate}")
             field_provenance = {
@@ -214,12 +251,23 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
             field_provenance["key"] = provenance
             nodes[key] = {"key": key, "id": identifier, "pc": pc, "name": name,
                           "provenance": provenance, "field_provenance": field_provenance}
-            row_records.append((key, pc, row))
+            if cluster_mode:
+                nodes[key]["cluster"] = scope or "shared"
+                field_provenance["cluster"] = deepcopy(field_provenance["pc"])
+                field_provenance["pc"][0]["transformation"] = "retain ПК N scope; other explicit cluster names have pc=null"
+            row_records.append((key, scope, row))
         by_name: dict[str, list[str]] = defaultdict(list)
         by_scope: dict[tuple, list[str]] = defaultdict(list)
+        shared_registry: dict[str, list[str]] = defaultdict(list)
         for key, node in nodes.items():
             by_name[node["name"]].append(key)
-            by_scope[(node["pc"], node["name"])].append(key)
+            node_scope = node.get("cluster") if cluster_mode else node["pc"]
+            if cluster_mode and key.startswith("g:"):
+                node_scope = None
+            by_scope[(node_scope, node["name"])].append(key)
+            if cluster_mode and node["pc"] is None:
+                shared_registry[node["name"]].append(key)
+        qualified_scopes = sorted({scope for scope, _ in by_scope if scope}, key=lambda scope: (-len(scope), scope))
         merged: dict[tuple[str, str], list] = defaultdict(list)
         issues = []
         declarations = []
@@ -227,7 +275,9 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
             for column, direction in ((3, "incoming"), (4, "outgoing")):
                 cell = row[column]
                 for ref in _references(cell.value):
-                    candidates, resolution, ref_scope, ref_name = _resolve(ref, pc, by_name, by_scope, global_names)
+                    candidates, resolution, ref_scope, ref_name = (
+                        _resolve_cluster(ref, pc, by_name, by_scope, shared_registry, qualified_scopes) if cluster_mode else
+                        _resolve(ref, pc, by_name, by_scope, global_names))
                     provenance = _evidence(path, state, cell.value,
                         f"split comma list; {resolution}; {direction} {'referenced → row' if direction == 'incoming' else 'row → referenced'}",
                         sheet=sheet.title, cell=cell.coordinate, reference=ref, direction=direction)
@@ -261,9 +311,11 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
         return {"schema_version": 1, "state": state, "format": "xlsx", "nodes": nodes,
                 "edges": edges, "issues": issues, "declarations": declarations,
                 "metadata": _metadata(path, nodes, edges, state, sheet=sheet.title,
-                    row_count=sheet.max_row, object_rows=len(row_records), formula_count=0,
+                    row_count=len(rows), object_rows=len(row_records), formula_count=0,
                     declaration_count=len(declarations),
-                    headers=list(HEADERS), global_name_registry=sorted(global_names),
+                    headers=list(headers), scope_column=headers[0], global_name_registry=sorted(global_names),
+                    declared_non_pc_registry={name: sorted(keys) for name, keys in sorted(shared_registry.items())},
+                    cluster_counts=dict(sorted(Counter(n.get("cluster") or n["pc"] or "shared" for n in nodes.values()).items())),
                     issue_counts=dict(sorted(Counter(i["kind"] for i in issues).items())))}
     finally:
         workbook.close()

@@ -316,6 +316,11 @@ body {
 
 .analyze-link {
     margin-top: 68px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
 
     color: #525252;
     text-decoration: none;
@@ -327,6 +332,11 @@ body {
     transition:
         color 0.25s ease,
         transform 0.25s ease;
+}
+
+.analyze-link:disabled {
+    cursor: progress;
+    opacity: .65;
 }
 
 .analyze-link:hover,

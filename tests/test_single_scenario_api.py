@@ -17,7 +17,7 @@ def client():
 
 
 def post(client, payload):
-    client.get('/')
+    client.get('/analysis/')
     return client.post('/api/scenario/', json.dumps(payload), content_type='application/json',
                        HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value)
 
@@ -25,7 +25,7 @@ def post(client, payload):
 def test_old_test_page_redirects_to_the_single_page(client):
     response = client.get('/tests/')
     assert response.status_code == 302
-    assert response['Location'] == '/'
+    assert response['Location'] == '/analysis/'
 
 
 def test_single_scenario_requires_post_and_csrf(client):

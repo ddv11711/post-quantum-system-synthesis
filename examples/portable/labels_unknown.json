@@ -1,0 +1,45 @@
+{
+  "schema": "component-security-graph/v1",
+  "state": "unknown-labels",
+  "nodes": {
+    "visitor": {
+      "type": "subject",
+      "security_label": {
+        "level": "restricted"
+      }
+    },
+    "records": {
+      "type": "file",
+      "security_label": {
+        "level": "restricted",
+        "categories": [
+          "medical"
+        ]
+      }
+    }
+  },
+  "edges": [
+    {
+      "id": "known-path",
+      "type": "access",
+      "source": "visitor",
+      "target": "records",
+      "subject": "visitor",
+      "operations": [
+        "read"
+      ],
+      "allowed": true,
+      "enabled": true
+    }
+  ],
+  "security_policy": {
+    "enabled": true,
+    "confidentiality_levels": [
+      "public",
+      "restricted"
+    ],
+    "categories": [
+      "medical"
+    ]
+  }
+}

@@ -172,3 +172,151 @@ def test_invalid_html_keys_and_dangling_edges_are_not_silently_accepted(tmp_path
     path.write_text('<script id="data" type="application/json">' + json.dumps(data) + '</script>')
     with pytest.raises(ImportFormatError, match="Duplicate"):
         load_html(path)
+
+
+def rewrite_sheet_xml(path, transform):
+    """Mutate only cached dimensions in a tiny workbook, never the real fixtures."""
+    from zipfile import ZipFile, ZIP_DEFLATED
+    with ZipFile(path) as archive:
+        contents = {name: archive.read(name) for name in archive.namelist()}
+    contents['xl/worksheets/sheet1.xml'] = transform(contents['xl/worksheets/sheet1.xml'].decode()).encode()
+    with ZipFile(path, 'w', ZIP_DEFLATED) as archive:
+        for name, value in contents.items():
+            archive.writestr(name, value)
+
+
+def write_streaming_sheet(path, rows, headers=None):
+    workbook = Workbook(write_only=True)
+    sheet = workbook.create_sheet('Конфигурации ПК')
+    sheet.append(headers or ['ПК', 'ID', 'Сущность', 'Вход', 'Выход'])
+    for row in rows:
+        sheet.append(row)
+    workbook.save(path)
+    workbook.close()
+
+
+def test_dimensionless_write_only_workbook_is_read_from_actual_cells(tmp_path):
+    path = tmp_path / 'streamed.xlsx'
+    write_streaming_sheet(path, [['ПК 1', 1, 'A', None, 'B'], ['ПК 1', 2, 'B', 'A', None]])
+    from zipfile import ZipFile
+    with ZipFile(path) as archive:
+        assert b'<dimension ' not in archive.read('xl/worksheets/sheet1.xml')
+    graph = load_xlsx(path)
+    assert set(graph['nodes']) == {'1:1', '1:2'}
+    assert edge_set(graph) == {('1:1', '1:2')}
+    assert graph['metadata']['row_count'] == 3
+    assert {p['cell'] for p in graph['edges'][0]['provenance']} == {'E2', 'D3'}
+
+
+@pytest.mark.parametrize('dimension', ['A1:A1', 'A1:C2', 'A1:XFD1048576'])
+def test_inaccurate_dimensions_neither_truncate_nor_inflate_actual_inventory(tmp_path, dimension):
+    import re
+    path = tmp_path / 'stale.xlsx'
+    write_sheet(path, [['ПК 1', 1, 'A', None, 'B'], ['ПК 1', 2, 'B', 'A', None]])
+    rewrite_sheet_xml(path, lambda xml: re.sub(r'<dimension\b[^>]*/>', f'<dimension ref="{dimension}"/>', xml))
+    graph = load_xlsx(path)
+    assert graph['metadata']['node_count'] == 2
+    assert graph['metadata']['row_count'] == 3
+    assert edge_set(graph) == {('1:1', '1:2')}
+
+
+@pytest.mark.parametrize('extra', ['unexpected value', '=1+1'])
+def test_populated_or_formula_column_outside_cached_dimension_is_rejected(tmp_path, extra):
+    import re
+    path = tmp_path / 'hidden-extra.xlsx'
+    write_sheet(path, [['ПК 1', 1, 'A', None, None, extra]])
+    rewrite_sheet_xml(path, lambda xml: re.sub(r'<dimension\b[^>]*/>', '<dimension ref="A1:A1"/>', xml))
+    with pytest.raises(ImportFormatError, match='F2'):
+        load_xlsx(path)
+
+
+def test_dimensionless_formula_is_not_treated_as_a_cached_value(tmp_path):
+    path = tmp_path / 'formula.xlsx'
+    write_streaming_sheet(path, [['ПК 1', 1, 'A', None, '=1+1']])
+    with pytest.raises(ImportFormatError, match='E2.*Formula'):
+        load_xlsx(path)
+
+
+def test_blank_rows_do_not_inherit_scope_or_break_coordinates(tmp_path):
+    path = tmp_path / 'blanks.xlsx'
+    write_streaming_sheet(path, [[None] * 5, ['ПК 9', 4, 'A', None, None], [None] * 5])
+    graph = load_xlsx(path)
+    assert graph['metadata']['row_count'] == 4
+    assert graph['metadata']['object_rows'] == 1
+    assert list(graph['nodes']) == ['9:4']
+    assert graph['nodes']['9:4']['field_provenance']['name'][0]['cell'] == 'C3'
+
+
+def test_style_only_extra_columns_are_not_phantom_data(tmp_path):
+    path = tmp_path / 'styled.xlsx'
+    write_sheet(path, [['ПК 1', 1, 'A', None, None]])
+    workbook = load_workbook(path)
+    workbook.active['XFD2'].number_format = '0.00'
+    workbook.save(path)
+    workbook.close()
+    graph = load_xlsx(path)
+    assert graph['metadata']['object_rows'] == 1
+    assert graph['metadata']['row_count'] == 2
+
+
+def test_actual_row_limit_applies_even_when_cached_extent_is_small(tmp_path):
+    import re
+    path = tmp_path / 'far-row.xlsx'
+    write_sheet(path, [['ПК 1', 1, 'A', None, None]])
+    workbook = load_workbook(path)
+    workbook.active['A10002'] = 'ПК 2'
+    workbook.save(path)
+    workbook.close()
+    rewrite_sheet_xml(path, lambda xml: re.sub(r'<dimension\b[^>]*/>', '<dimension ref="A1:A1"/>', xml))
+    with pytest.raises(ImportFormatError, match='10002.*exceeds'):
+        load_xlsx(path)
+
+
+def test_cluster_column_keeps_scoped_keys_and_resolves_only_declared_registry(tmp_path):
+    from urllib.parse import quote
+    path = tmp_path / 'clusters.xlsx'
+    write_streaming_sheet(path, [
+        ['ПК 1', 1, 'A', None, 'Service, Ops / Service, Shared, ПК 2 / A, Storage / zone / Shared'],
+        ['ПК 1', 2, 'Service', None, None],
+        ['ПК 2', 1, 'A', None, 'Service'],
+        ['Ops', 2, 'Service', None, 'A'],
+        ['Storage / zone', 2, 'Shared', None, None],
+        ['Admin', 2, 'Shared', None, None],
+    ], headers=['Кластер', 'ID', 'Сущность', 'Вход', 'Выход'])
+    graph = load_xlsx(path)
+    ops = 'c:Ops:2'
+    storage = 'c:' + quote('Storage / zone', safe='') + ':2'
+    assert len(graph['nodes']) == 6
+    assert graph['nodes'][ops]['pc'] is None and graph['nodes'][ops]['cluster'] == 'Ops'
+    assert ('1:1', '1:2') in edge_set(graph)  # Local name wins over shared registry.
+    assert ('1:1', ops) in edge_set(graph)  # Explicitly qualified cluster.
+    assert ('2:1', ops) in edge_set(graph)  # Unique declared non-PC registry match.
+    assert ('1:1', storage) in edge_set(graph)
+    assert (ops, '1:1') not in edge_set(graph) and (ops, '2:1') not in edge_set(graph)
+    ambiguity = [i for i in graph['issues'] if i['kind'] == 'ambiguous_reference']
+    assert {i['reference'] for i in ambiguity} == {'Shared', 'A'}
+    assert graph['metadata']['headers'][0] == 'Кластер'
+    assert graph['metadata']['row_count'] == 7
+
+
+def test_pc_reference_does_not_fall_back_to_another_pc_in_cluster_sheet(tmp_path):
+    path = tmp_path / 'local-only.xlsx'
+    write_streaming_sheet(path, [
+        ['ПК 1', 1, 'A', None, 'Absent locally'],
+        ['ПК 2', 2, 'Absent locally', None, None],
+        ['shared', 1, 'Named group entry', None, 'Named group entry'],
+    ], headers=['Кластер', 'ID', 'Сущность', 'Вход', 'Выход'])
+    graph = load_xlsx(path)
+    assert ('1:1', '2:2') not in edge_set(graph)
+    assert any(i['kind'] == 'unresolved_reference' and i['reference_scope'] == 'ПК 1' for i in graph['issues'])
+    assert ('c:shared:1', 'c:shared:1') in edge_set(graph)
+
+
+def test_malformed_tail_xml_is_a_diagnosed_import_error(tmp_path):
+    path = tmp_path / 'malformed.xlsx'
+    write_sheet(path, [['ПК 1', 1, 'A', None, None]])
+    # Workbook metadata and the initial dimension remain readable; corruption
+    # occurs in the sheet content that our complete XML preflight must inspect.
+    rewrite_sheet_xml(path, lambda xml: xml.replace('</sheetData>', '</sheetDataBROKEN>'))
+    with pytest.raises(ImportFormatError, match='malformed worksheet XML'):
+        load_xlsx(path)

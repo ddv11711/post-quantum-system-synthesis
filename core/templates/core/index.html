@@ -12,18 +12,28 @@
     <script defer src="{% static 'core/js/main.js' %}"></script>
 </head>
 <body>
-    <a href="{% url 'home' %}" style="position:fixed;bottom:17px;left:17px;z-index:200;background:#fff;color:#252525;border:1px solid #dfe2eb;box-shadow:0 2px 10px #0001;padding:9px 14px;border-radius:9px;text-decoration:none;font:500 13px Inter,Arial,sans-serif">← На главную</a>
-    <div class="app" id="security-app" data-scenario-url="{% url 'security-scenario' %}">
+    <div class="app" id="security-app" data-example-url="{% url 'graph-example' %}" data-upload-url="{% url 'analyze-upload' %}" data-repair-url="{% url 'repair-model' %}">
         {% csrf_token %}
         <header class="app-header">
             <div class="brand">
                 <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="m8 9 16 3-10 13L8 9Z" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="9" r="4" fill="currentColor"/><circle cx="24" cy="12" r="4" fill="currentColor"/><circle cx="14" cy="25" r="4" fill="currentColor"/></svg></span>
                 <div><span class="brand-name">BIGVIZOV</span><span class="brand-caption">Логический анализатор</span></div>
             </div>
-            <span class="model-label">4 ПК и общий сетевой диск</span>
+            <span class="model-label" id="model-name">Типизированный граф системы</span>
+            <a class="home-link" href="{% url 'home' %}">На главную</a>
         </header>
         <main>
             <div class="page-heading"><h1>Защищённость системы</h1></div>
+            <div class="input-toolbar" id="drop-area">
+                <label class="secondary-button upload-button" for="graph-file">Загрузить граф<input id="graph-file" type="file" accept=".json,.xlsx,.html,.htm" class="visually-hidden"></label>
+                <button type="button" class="text-button" id="example-button">Открыть пример FLS</button>
+                <details class="format-help" id="format-help"><summary>Формат данных</summary><div>
+                    <p>JSON или Excel: кластеры, три уровня связей, фактические права и метки. Физический, синтаксический и семантический уровни задаются отдельно. В старых файлах без уровней показываются исходные связи.</p>
+                    <p>Для проверки укажите типы узлов, фактические права и требования безопасности. Для мандатного доступа нужны метки объектов, допуски пользователей и порядок уровней. Заполните эти данные для своей системы по образцу и загрузите дополненную модель.</p>
+                    <a href="{% url 'download-example' %}?example=fls">Скачать образец JSON</a><a href="{% url 'download-example' %}?example=fls&amp;format=xlsx">Скачать образец Excel</a>
+                </div></details>
+                <span id="file-name" class="input-caption">Можно перетащить файл на эту страницу</span>
+            </div>
             <section class="system-status" id="system-status" data-state="loading" aria-labelledby="status-title">
                 <div class="status-symbol" id="status-symbol" aria-hidden="true"><span class="spinner"></span></div>
                 <div class="status-copy" aria-live="polite"><h2 id="status-title">Проверяем граф…</h2><p id="status-description">Загружаем компоненты и проверяем доступ к ресурсам.</p></div>
@@ -33,7 +43,7 @@
             <div class="analysis-workspace">
                 <section class="graph-card" aria-labelledby="graph-title">
                     <header class="graph-header">
-                        <div><h2 id="graph-title">Граф системы</h2><p class="graph-meta"><span id="node-count">—</span> узел · <span id="edge-count">—</span> связей</p></div>
+                        <div><h2 id="graph-title">Граф системы</h2><p class="graph-meta">Всего узлов: <span id="node-count">—</span> · исходных связей: <span id="edge-count">—</span><span id="layer-count-note" hidden> · стрелок F/L/S: <span id="layer-count">—</span></span></p></div>
                         <div class="phase-switch" role="group" aria-label="Состояние графа">
                             <button type="button" id="before-tab" aria-pressed="true" disabled>До исправления</button>
                             <button type="button" id="after-tab" aria-pressed="false" disabled>После исправления</button>
@@ -46,12 +56,18 @@
                 </section>
                 <aside class="findings-panel" aria-labelledby="findings-title">
                     <div class="findings-heading"><h2 id="findings-title">Результат проверки</h2><span class="finding-count" id="finding-count" hidden></span></div>
+                    <details id="profile-details" class="profile-details" hidden><summary>Правила выбранного профиля</summary><p id="active-profile-name"></p><ul id="profile-assumptions"></ul></details>
                     <div id="findings-list" class="findings-list" aria-live="polite"><p class="findings-empty">Проверяем доступ, защиту и регистрацию событий…</p></div>
-                    <div class="checks-summary"><span id="check-icon" aria-hidden="true">✓</span><div><strong id="check-count">Проверка выполняется</strong><p id="check-description">Результаты появятся вместе с графом.</p></div></div>
+                    <details id="unknown-details" class="unknown-details" hidden><summary id="unknown-summary">Недостаточно данных</summary><div id="unknown-list"></div></details>
+                    <div class="checks-summary"><span id="check-icon" aria-hidden="true">—</span><div><strong id="check-count">Проверка выполняется</strong><p id="check-description">Результаты появятся вместе с графом.</p></div></div>
+                    <details class="coverage-details" id="coverage-details" hidden><summary>Область проверки</summary><div id="coverage-list"></div></details>
                 </aside>
             </div>
-            <footer class="app-footer"><span>Учебная модель на основе ваших файлов.</span><span>Excel принят за полный перечень компонентов. Проверяются 12 требований сценария.</span></footer>
+            <footer class="app-footer"><span id="model-notice">Вывод строится по явно заданным требованиям, правам и меткам.</span><span>Неизвестные данные не считаются подтверждением безопасности.</span></footer>
         </main>
     </div>
+    {% if initial_report %}{{ initial_report|json_script:"initial-report" }}{% endif %}
+    {% if initial_error %}{{ initial_error|json_script:"initial-error" }}{% endif %}
+    {% if initial_filename %}{{ initial_filename|json_script:"initial-filename" }}{% endif %}
 </body>
 </html>

@@ -1,0 +1,21 @@
+{
+  "schema": "component-security-graph/v1",
+  "state": "bare-graph",
+  "nodes": [
+    {
+      "id": "sensor-A",
+      "name": "Датчик"
+    },
+    {
+      "id": "board/Б",
+      "name": "Контроллер"
+    }
+  ],
+  "edges": [
+    {
+      "id": "wire",
+      "source": "sensor-A",
+      "target": "board/Б"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ def client():
 
 
 def post(client, scenario, payload=None):
-    client.get("/")
+    client.get("/analysis/")
     return client.post(f"/api/test-scenarios/{scenario}/run/", json.dumps(payload or {}),
                        content_type="application/json", HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value)
 
@@ -45,7 +45,7 @@ def test_scenario_execution_requires_post_and_csrf(client):
 
 @pytest.mark.parametrize("payload", [[], {"repair": "true"}, {"closed_inventory": 1}, {"path": "/etc/passwd"}, {"command": "pytest"}])
 def test_request_cannot_select_paths_commands_or_coerce_assumptions(client, payload):
-    client.get("/")
+    client.get("/analysis/")
     response = client.post("/api/test-scenarios/keyed_backup/run/", json.dumps(payload), content_type="application/json",
                            HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value)
     assert response.status_code == 400

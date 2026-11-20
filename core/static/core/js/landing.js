@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("model-file");
     const target = document.getElementById("upload-target");
     const hint = document.getElementById("file-hint");
+    const form = document.getElementById("upload-form");
+    const submit = form?.querySelector('.analyze-link');
 
     if (input && target && hint) {
 
@@ -27,6 +29,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Выбор файла через проводник
         input.addEventListener("change", updateFileName);
+        input.addEventListener("invalid", () => {
+            hint.textContent = "Сначала выберите файл графа";
+        });
+        form?.addEventListener('submit', (event) => {
+            if (input.files.length !== 1) {
+                event.preventDefault();
+                hint.textContent = "Выберите один файл графа";
+                return;
+            }
+            if (submit) {
+                submit.disabled = true;
+                submit.textContent = "Загружаем граф…";
+            }
+            form.setAttribute('aria-busy', 'true');
+        });
+        window.addEventListener('pageshow', () => {
+            if (submit) { submit.disabled = false; submit.textContent = 'Запустить анализ'; }
+            form?.removeAttribute('aria-busy');
+            updateFileName();
+        });
 
         // Подсветка области при перетаскивании
         ["dragenter", "dragover"].forEach((type) => {
@@ -51,6 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     type === "drop" &&
                     event.dataTransfer?.files?.length
                 ) {
+                    if (event.dataTransfer.files.length !== 1) {
+                        input.value = '';
+                        hint.textContent = "Перетащите один файл графа";
+                        return;
+                    }
                     input.files = event.dataTransfer.files;
                     updateFileName();
                 }

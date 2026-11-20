@@ -15,6 +15,10 @@ from .profiles import imported_model, apply_profile, comparison_model
 from .repairs import find_repairs
 from .transitions import apply_actions
 from .visualization import build_graph
+from .model import validate_model
+from .portable import is_portable, load_portable
+from .remediation import attach_repair_catalog
+from .reporting import analysis_scope
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT/'data/sources'
@@ -22,6 +26,25 @@ SOURCES = ROOT/'data/sources'
 
 def read_json(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
+
+
+def load_input(path):
+    path = Path(path)
+    if path.suffix.lower() in {'.html', '.htm'}:
+        return imported_model(load_html(path))
+    if path.suffix.lower() == '.xlsx':
+        from .portable_files import is_portable_workbook, load_portable_workbook
+        if not is_portable_workbook(path):
+            return imported_model(load_xlsx(path))
+        payload = load_portable_workbook(path)
+    else:
+        payload = read_json(path)
+    model = payload.get('model', payload) if isinstance(payload, dict) else payload
+    if is_portable(model):
+        model = load_portable(model, source=str(path))
+        if 'repair_policy' in model and not validate_model(model):
+            model = attach_repair_catalog(model, model['repair_policy'])
+    return model
 
 
 def _environment():
@@ -144,19 +167,20 @@ def main(argv=None):
                 write_json(args.out/f'{name}.json', obj)
             print(json.dumps({'html': h['metadata'], 'xlsx': x['metadata'], 'missing_in_xlsx': comp['missing_in_xlsx'], 'mode': comp['mode']}, ensure_ascii=False, indent=2))
         elif args.command == 'analyze':
-            ext = args.input.suffix.lower()
-            model = imported_model(load_html(args.input)) if ext == '.html' else imported_model(load_xlsx(args.input)) if ext == '.xlsx' else read_json(args.input)
+            model = load_input(args.input)
             if args.profile:
                 model = apply_profile(model, args.profile)
             report = analyze(model)
             write_json(args.out/'model.json', model)
             write_json(args.out/'analysis.json', report)
-            if not report['model_errors']:
+            write_json(args.out/'scope.json', analysis_scope(model, report))
+            write_json(args.out/'graph.json', build_graph(model, report))
+            if not report['model_errors'] and len(model.get('nodes', {})) <= 500:
                 write_json(args.out/'matrices.json', export_matrices(model))
             print(json.dumps(report['summary'], ensure_ascii=False))
             return 2 if report['model_errors'] else 0
         elif args.command == 'repair':
-            report = find_repairs(read_json(args.model), read_json(args.actions) if args.actions else None,
+            report = find_repairs(load_input(args.model), read_json(args.actions) if args.actions else None,
                                   max_candidates=args.max_candidates, timeout_seconds=args.timeout)
             write_json(args.out, report)
             print(report['status'])
