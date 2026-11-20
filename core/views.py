@@ -4,6 +4,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from zipfile import BadZipFile, ZipFile
 
+from django.conf import settings
+from django.http import FileResponse, Http404
+from django.views.decorators.http import require_GET
 from django.core.exceptions import RequestDataTooBig
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -19,6 +22,51 @@ from analyzer.scenarios import _REPAIR_LOCK
 MAX_UPLOAD_BYTES = 32 * 1024 * 1024
 
 
+DOCUMENTS_DIR = settings.BASE_DIR / "documents" / "normative"
+
+
+def landing(request):
+    DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    documents = [
+        {
+            "filename": file.name,
+            "title": file.stem,
+        }
+        for file in DOCUMENTS_DIR.iterdir()
+        if file.is_file() and file.suffix.lower() == ".pdf"
+    ]
+
+    documents.sort(key=lambda item: item["title"].casefold())
+
+    return render(request, "core/landing.html", {
+        "documents": documents
+    })
+
+
+@require_GET
+def download_normative(request, filename):
+    # Разрешаем скачивать только PDF из установленной папки.
+    if filename != Path(filename).name:
+        raise Http404("Недопустимое имя файла")
+
+    file_path = DOCUMENTS_DIR / filename
+
+    if (
+        file_path.suffix.lower() != ".pdf"
+        or not file_path.is_file()
+        or not file_path.resolve().is_relative_to(DOCUMENTS_DIR.resolve())
+    ):
+        raise Http404("Документ не найден")
+
+    return FileResponse(
+        open(file_path, "rb"),
+        as_attachment=True,
+        filename=file_path.name,
+        content_type="application/pdf",
+    )
+
+
 @ensure_csrf_cookie
 def index(request):
     return render(request, "core/index.html")
@@ -26,7 +74,7 @@ def index(request):
 
 @ensure_csrf_cookie
 def test_lab(request):
-    return redirect("home")
+    return redirect("analysis")
 
 
 def _model_shape(model):

@@ -1,0 +1,2360 @@
+{
+  "profile": "demo_local_v1",
+  "assumptions": [
+    {
+      "id": "D1",
+      "kind": "demo_assumption",
+      "description": "Учебный локальный профиль, не заключение о реальных правах и нормативном соответствии."
+    },
+    {
+      "id": "D2",
+      "kind": "demo_assumption",
+      "description": "Выбранные компоненты включены и исправны; таблицы переходов перечислены полностью только для указанных контекстов."
+    },
+    {
+      "id": "D3",
+      "kind": "demo_assumption",
+      "description": "Каждый основной пользователь обязан читать NAS. Второму пользователю ПК 2 это запрещено; доступны два явно описанных интерфейса."
+    },
+    {
+      "id": "D4",
+      "kind": "demo_assumption",
+      "description": "Фильтрация ПК 1 обязательна и покрывается только его межсетевым экраном. Система аутентификации ПК 2 разрешает пароль ИЛИ сертификат."
+    },
+    {
+      "id": "D5",
+      "kind": "demo_assumption",
+      "description": "Системная служба ПК 1 регистрирует событие получения сетевого пакета. Это назначенная в примере роль, а не свойство, извлечённое из названия."
+    },
+    {
+      "id": "D6",
+      "kind": "demo_assumption",
+      "description": "Семантические назначения сохраняются при сравнении источников. Отсутствие строки становится удалением только с отдельным --closed-inventory."
+    },
+    {
+      "id": "D7",
+      "kind": "demo_assumption",
+      "description": "Стоимость каждого атомарного изменения равна 1; поиск ограничен явно разрешённым каталогом действий."
+    }
+  ],
+  "nodes": {
+    "g:104": {
+      "types": [
+        "component",
+        "data"
+      ]
+    },
+    "1:1": {
+      "types": [
+        "subject"
+      ]
+    },
+    "1:65": {
+      "types": [
+        "component",
+        "function"
+      ]
+    },
+    "1:27": {
+      "types": [
+        "component"
+      ]
+    },
+    "2:1": {
+      "types": [
+        "subject"
+      ]
+    },
+    "2:65": {
+      "types": [
+        "component",
+        "function"
+      ]
+    },
+    "2:27": {
+      "types": [
+        "component"
+      ]
+    },
+    "3:1": {
+      "types": [
+        "subject"
+      ]
+    },
+    "3:65": {
+      "types": [
+        "component",
+        "function"
+      ]
+    },
+    "3:27": {
+      "types": [
+        "component"
+      ]
+    },
+    "4:1": {
+      "types": [
+        "subject"
+      ]
+    },
+    "4:65": {
+      "types": [
+        "component",
+        "function"
+      ]
+    },
+    "4:27": {
+      "types": [
+        "component"
+      ]
+    },
+    "1:59": {
+      "types": [
+        "component"
+      ]
+    },
+    "1:98": {
+      "types": [
+        "event",
+        "data"
+      ]
+    },
+    "1:70": {
+      "types": [
+        "component"
+      ]
+    },
+    "2:89": {
+      "types": [
+        "component"
+      ]
+    },
+    "2:90": {
+      "types": [
+        "component"
+      ]
+    },
+    "2:93": {
+      "types": [
+        "component"
+      ]
+    },
+    "2:99": {
+      "types": [
+        "subject"
+      ]
+    },
+    "2:71": {
+      "types": [
+        "component"
+      ]
+    },
+    "g:102": {
+      "types": [
+        "component"
+      ]
+    }
+  },
+  "facts": [
+    {
+      "predicate": "acl",
+      "args": [
+        "1:1",
+        "g:104",
+        "read"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[0]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:1",
+        "g:104",
+        "read"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[1]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "3:1",
+        "g:104",
+        "read"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[2]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "4:1",
+        "g:104",
+        "read"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[3]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "cover",
+      "args": [
+        "1:98",
+        "filtering",
+        "1:59"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[4]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "cover",
+      "args": [
+        "2:89",
+        "authentication",
+        "2:90"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[5]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "cover",
+      "args": [
+        "2:89",
+        "authentication",
+        "2:93"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[6]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "event_possible",
+      "args": [
+        "1:98"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[7]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "logger",
+      "args": [
+        "1:98",
+        "1:70"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[8]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:99",
+        "2:71",
+        "read"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[9]",
+          "state": "profile_binding",
+          "raw_value": "FALSE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:99",
+        "g:102",
+        "read"
+      ],
+      "value": "FALSE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[10]",
+          "state": "profile_binding",
+          "raw_value": "FALSE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[11]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[12]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:59"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[13]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:59"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[14]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[15]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[16]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:70"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[17]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:70"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[18]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[19]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[20]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[21]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[22]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:71"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[23]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:71"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[24]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:90"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[25]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:90"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[26]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:93"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[27]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:93"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[28]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "3:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[29]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "3:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[30]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "3:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[31]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "3:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[32]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "4:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[33]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "4:27"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[34]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "4:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[35]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "4:65"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[36]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "g:102"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[37]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "g:102"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[38]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "g:104"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[39]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "g:104"
+      ],
+      "value": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "facts[40]",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ],
+  "completeness": [
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "1:1",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "2:1",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "3:1",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "4:1",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "cover",
+      "args_prefix": [
+        "1:98",
+        "filtering"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "cover",
+      "args_prefix": [
+        "2:89",
+        "authentication"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "logger",
+      "args_prefix": [
+        "1:98"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "transitions",
+      "args_prefix": [
+        "2:99",
+        "read",
+        "default",
+        "access"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "1:27"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "1:59"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "1:65"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "1:70"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "2:27"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "2:65"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "2:71"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "2:90"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "2:93"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "3:27"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "3:65"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "4:27"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "4:65"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "g:102"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "predicate": "dependencies",
+      "args_prefix": [
+        "g:104"
+      ],
+      "complete": true,
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "completeness",
+          "state": "profile_binding",
+          "raw_value": true,
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "pc1_nas_required",
+      "checker": "required_operation",
+      "object": "g:104",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc1_nas_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "subject": "1:1",
+      "operation": "read",
+      "name": "ПК 1: обязательное чтение общего NAS"
+    },
+    {
+      "id": "pc1_os_required",
+      "checker": "required_function",
+      "object": "1:65",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc1_os_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "catalog_rule_ids": [
+        "ST006"
+      ],
+      "name": "ПК 1: ОС доступна"
+    },
+    {
+      "id": "pc2_nas_required",
+      "checker": "required_operation",
+      "object": "g:104",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc2_nas_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "subject": "2:1",
+      "operation": "read",
+      "name": "ПК 2: обязательное чтение общего NAS"
+    },
+    {
+      "id": "pc2_os_required",
+      "checker": "required_function",
+      "object": "2:65",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc2_os_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "catalog_rule_ids": [
+        "ST006"
+      ],
+      "name": "ПК 2: ОС доступна"
+    },
+    {
+      "id": "pc3_nas_required",
+      "checker": "required_operation",
+      "object": "g:104",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc3_nas_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "subject": "3:1",
+      "operation": "read",
+      "name": "ПК 3: обязательное чтение общего NAS"
+    },
+    {
+      "id": "pc3_os_required",
+      "checker": "required_function",
+      "object": "3:65",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc3_os_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "catalog_rule_ids": [
+        "ST006"
+      ],
+      "name": "ПК 3: ОС доступна"
+    },
+    {
+      "id": "pc4_nas_required",
+      "checker": "required_operation",
+      "object": "g:104",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc4_nas_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "subject": "4:1",
+      "operation": "read",
+      "name": "ПК 4: обязательное чтение общего NAS"
+    },
+    {
+      "id": "pc4_os_required",
+      "checker": "required_function",
+      "object": "4:65",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc4_os_required",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "catalog_rule_ids": [
+        "ST006"
+      ],
+      "name": "ПК 4: ОС доступна"
+    },
+    {
+      "id": "pc1_filtering",
+      "checker": "protection",
+      "object": "1:98",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc1_filtering",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "control": "filtering",
+      "catalog_rule_ids": [
+        "MD009"
+      ],
+      "name": "ПК 1: фильтрация входящего потока"
+    },
+    {
+      "id": "pc2_auth",
+      "checker": "authentication",
+      "object": "2:89",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc2_auth",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "control": "authentication",
+      "catalog_rule_ids": [
+        "ST005"
+      ],
+      "name": "ПК 2: один разрешённый метод аутентификации"
+    },
+    {
+      "id": "pc1_logging",
+      "checker": "logging",
+      "object": "1:98",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/pc1_logging",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "name": "ПК 1: регистрация обязательного события"
+    },
+    {
+      "id": "nas_forbidden",
+      "checker": "forbidden_operation",
+      "object": "g:104",
+      "applicable": "TRUE",
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "requirements/nas_forbidden",
+          "state": "profile_binding",
+          "raw_value": "required",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ],
+      "subject": "2:99",
+      "operation": "read",
+      "name": "Второму пользователю ПК 2 запрещено чтение NAS"
+    }
+  ],
+  "dependencies": {
+    "1:65": {
+      "all": [
+        "1:27"
+      ]
+    },
+    "2:65": {
+      "all": [
+        "2:27"
+      ]
+    },
+    "3:65": {
+      "all": [
+        "3:27"
+      ]
+    },
+    "4:65": {
+      "all": [
+        "4:27"
+      ]
+    }
+  },
+  "transitions": [
+    {
+      "id": "pc1-nas",
+      "subject": "1:1",
+      "source": "1:1",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "1:1",
+            "g:104",
+            "read"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "1:65"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/pc1-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "pc2-nas",
+      "subject": "2:1",
+      "source": "2:1",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:1",
+            "g:104",
+            "read"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "2:65"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/pc2-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "pc3-nas",
+      "subject": "3:1",
+      "source": "3:1",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "3:1",
+            "g:104",
+            "read"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "3:65"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/pc3-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "pc4-nas",
+      "subject": "4:1",
+      "source": "4:1",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "4:1",
+            "g:104",
+            "read"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "4:65"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/pc4-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "outsider-application-entry",
+      "subject": "2:99",
+      "source": "2:99",
+      "target": "2:71",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "2:71",
+            "read"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/outsider-application-entry",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "outsider-application-nas",
+      "subject": "2:99",
+      "source": "2:71",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "available",
+          "args": [
+            "2:71"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/outsider-application-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "outsider-vpn-entry",
+      "subject": "2:99",
+      "source": "2:99",
+      "target": "g:102",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "g:102",
+            "read"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/outsider-vpn-entry",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "outsider-vpn-nas",
+      "subject": "2:99",
+      "source": "g:102",
+      "target": "g:104",
+      "operation": "read",
+      "scenario": "default",
+      "kind": "access",
+      "conditions": [
+        {
+          "predicate": "available",
+          "args": [
+            "g:102"
+          ],
+          "expected": "TRUE"
+        },
+        {
+          "predicate": "available",
+          "args": [
+            "g:104"
+          ],
+          "expected": "TRUE"
+        }
+      ],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "transitions/outsider-vpn-nas",
+          "state": "profile_binding",
+          "raw_value": "semantic transition",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ],
+  "mutable": [
+    {
+      "predicate": "acl",
+      "args": [
+        "1:1",
+        "g:104",
+        "read"
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:1",
+        "g:104",
+        "read"
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "3:1",
+        "g:104",
+        "read"
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "4:1",
+        "g:104",
+        "read"
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:99",
+        "2:71",
+        "read"
+      ]
+    },
+    {
+      "predicate": "acl",
+      "args": [
+        "2:99",
+        "g:102",
+        "read"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:27"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:27"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:59"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:59"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:65"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:65"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "1:70"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "1:70"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:27"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:27"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:65"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:65"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:71"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:71"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:90"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:90"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "2:93"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "2:93"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "3:27"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "3:27"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "3:65"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "3:65"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "4:27"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "4:27"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "4:65"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "4:65"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "g:102"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "g:102"
+      ]
+    },
+    {
+      "predicate": "enabled",
+      "args": [
+        "g:104"
+      ]
+    },
+    {
+      "predicate": "healthy",
+      "args": [
+        "g:104"
+      ]
+    },
+    {
+      "predicate": "present",
+      "args": [
+        "1:59"
+      ]
+    }
+  ],
+  "action_catalog": [
+    {
+      "id": "close_application_acl",
+      "object": "2:99",
+      "cost": 1,
+      "targets": [
+        "nas_forbidden"
+      ],
+      "preconditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "2:71",
+            "read"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "effects": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "2:71",
+            "read"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "requires": [],
+      "excludes": [],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "action_catalog/close_application_acl",
+          "state": "profile_binding",
+          "raw_value": "FALSE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "close_vpn_acl",
+      "object": "2:99",
+      "cost": 1,
+      "targets": [
+        "nas_forbidden"
+      ],
+      "preconditions": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "g:102",
+            "read"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "effects": [
+        {
+          "predicate": "acl",
+          "args": [
+            "2:99",
+            "g:102",
+            "read"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "requires": [],
+      "excludes": [],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "action_catalog/close_vpn_acl",
+          "state": "profile_binding",
+          "raw_value": "FALSE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "restore_filter",
+      "object": "1:59",
+      "cost": 1,
+      "targets": [
+        "pc1_filtering"
+      ],
+      "preconditions": [
+        {
+          "predicate": "present",
+          "args": [
+            "1:59"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "effects": [
+        {
+          "predicate": "present",
+          "args": [
+            "1:59"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "requires": [],
+      "excludes": [],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "action_catalog/restore_filter",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "enable_logger",
+      "object": "1:70",
+      "cost": 1,
+      "targets": [
+        "pc1_logging"
+      ],
+      "preconditions": [
+        {
+          "predicate": "enabled",
+          "args": [
+            "1:70"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "effects": [
+        {
+          "predicate": "enabled",
+          "args": [
+            "1:70"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "requires": [],
+      "excludes": [],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "action_catalog/enable_logger",
+          "state": "profile_binding",
+          "raw_value": "TRUE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    },
+    {
+      "id": "disable_nas",
+      "object": "g:104",
+      "cost": 1,
+      "targets": [
+        "nas_forbidden"
+      ],
+      "preconditions": [
+        {
+          "predicate": "enabled",
+          "args": [
+            "g:104"
+          ],
+          "value": "TRUE"
+        }
+      ],
+      "effects": [
+        {
+          "predicate": "enabled",
+          "args": [
+            "g:104"
+          ],
+          "value": "FALSE"
+        }
+      ],
+      "requires": [],
+      "excludes": [],
+      "provenance": [
+        {
+          "file": "examples/demo_profile.json",
+          "json_key": "action_catalog/disable_nas",
+          "state": "profile_binding",
+          "raw_value": "FALSE",
+          "transformation": "explicit hypothetical scenario",
+          "kind": "demo_assumption"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "allowed": [
+      {
+        "subject": "1:1",
+        "object": "g:104",
+        "operation": "read",
+        "scenario": "default",
+        "provenance": [
+          {
+            "file": "examples/demo_profile.json",
+            "json_key": "policy/allowed",
+            "state": "profile_binding",
+            "raw_value": true,
+            "transformation": "explicit hypothetical scenario",
+            "kind": "demo_assumption"
+          }
+        ]
+      },
+      {
+        "subject": "2:1",
+        "object": "g:104",
+        "operation": "read",
+        "scenario": "default",
+        "provenance": [
+          {
+            "file": "examples/demo_profile.json",
+            "json_key": "policy/allowed",
+            "state": "profile_binding",
+            "raw_value": true,
+            "transformation": "explicit hypothetical scenario",
+            "kind": "demo_assumption"
+          }
+        ]
+      },
+      {
+        "subject": "3:1",
+        "object": "g:104",
+        "operation": "read",
+        "scenario": "default",
+        "provenance": [
+          {
+            "file": "examples/demo_profile.json",
+            "json_key": "policy/allowed",
+            "state": "profile_binding",
+            "raw_value": true,
+            "transformation": "explicit hypothetical scenario",
+            "kind": "demo_assumption"
+          }
+        ]
+      },
+      {
+        "subject": "4:1",
+        "object": "g:104",
+        "operation": "read",
+        "scenario": "default",
+        "provenance": [
+          {
+            "file": "examples/demo_profile.json",
+            "json_key": "policy/allowed",
+            "state": "profile_binding",
+            "raw_value": true,
+            "transformation": "explicit hypothetical scenario",
+            "kind": "demo_assumption"
+          }
+        ]
+      }
+    ]
+  },
+  "normative_profile": {
+    "name": "local educational requirements",
+    "regulatory_applicability": "UNKNOWN"
+  }
+}
