@@ -184,3 +184,30 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = url.href;
     });
 });
+
+/* AUTO_FIX_V2_MULTIPART_FORM */
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('upload-form');
+    const file = document.getElementById('model-file');
+    const launch = document.getElementById('choose-template');
+    if (!form || !file || !launch) return;
+
+    // When no file is attached, preserve the existing template selection UX.
+    // With an attached file, submit the real multipart form to /analysis/.
+    form.noValidate = true;
+    launch.addEventListener('click', (event) => {
+        if (file.files && file.files.length === 1) {
+            event.stopImmediatePropagation();
+            return;  // normal submit-button action proceeds
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        document.getElementById('open-templates')?.click();
+    }, true);
+    form.addEventListener('submit', (event) => {
+        if (!file.files || file.files.length !== 1) {
+            event.preventDefault();
+            document.getElementById('open-templates')?.click();
+        }
+    }, true);
+});

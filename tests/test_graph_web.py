@@ -24,7 +24,7 @@ def client():
 
 
 def post(client, endpoint, payload, *, file=False):
-    client.get('/')
+    client.get('/analysis/')
     token = client.cookies['csrftoken'].value
     if file:
         return client.post(endpoint, {'file': SimpleUploadedFile('model.json', json.dumps(payload).encode())}, HTTP_X_CSRFTOKEN=token)
@@ -52,7 +52,7 @@ def model():
 
 def test_upload_full_html_graph_preserves_all_nodes_and_structural_links(client):
     path = Path(__file__).resolve().parents[1]/'data/sources/graf-svyazey-pk.html'
-    client.get('/')
+    client.get('/analysis/')
     response = client.post('/api/analyze/', {'file': SimpleUploadedFile(path.name, path.read_bytes())}, HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value)
     assert response.status_code == 200
     graph = response.json()['states']['imported']['graph']
@@ -136,7 +136,7 @@ def test_repair_endpoint_enforces_csrf_method_and_request_shape(client):
 
 
 def test_page_loads_graph_renderer_and_no_longer_offers_json_as_result(client):
-    page = client.get('/').content.decode()
+    page = client.get('/analysis/').content.decode()
     assert 'graph_view.js' in page and 'graph_view.css' in page
     assert page.index('graph_view.js') < page.index('main.js')
     assert 'id="security-graph"' in page

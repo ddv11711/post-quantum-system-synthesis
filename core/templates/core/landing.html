@@ -17,11 +17,12 @@
                 <img src="{% static 'core/img/landing-art.svg' %}" alt="" draggable="false">
             </div>
         </section>
-        <section class="actions" aria-label="Импорт и запуск анализа">
+        <form id="upload-form" class="actions" aria-label="Импорт и запуск анализа" action="{% url 'analysis' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             <div class="upload-panel">
                 <span class="upload-title">Импорт</span>
                 <label class="upload-target" for="model-file" id="upload-target">
-                    <input id="model-file" type="file" accept=".json,.html,.htm,.xlsx" aria-describedby="file-hint upload-description">
+                    <input id="model-file" type="file" accept=".json,.html,.htm,.xlsx" aria-describedby="file-hint upload-description" name="file" required>
                     <span class="upload-content">
                         <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M12 16V4M8 8l4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
@@ -31,7 +32,7 @@
                     <span id="upload-description" class="upload-description">Перетащите файл или нажмите для выбора</span>
                 </label>
             </div>
-            <button class="analyze-link" type="button" id="choose-template"
+            <button class="analyze-link" type="submit" id="choose-template"
                     data-analysis-url="{% url 'analysis' %}"
                     data-upload-url="{% url 'analyze-upload' %}">Запустить анализ</button>
             <p class="import-feedback" id="import-feedback" role="alert" hidden></p>
@@ -39,7 +40,8 @@
                 <button class="templates-open" type="button" id="open-templates">Шаблоны</button>
                 <button class="normative-open" type="button" id="open-normative">Нормативная база</button>
             </nav>
-        </section>
+        </form>
+            <noscript><a href="{% url 'analysis' %}">Открыть анализатор</a></noscript>
     </main>
 
     <main class="landing page-screen normative-screen" id="normative-screen" aria-hidden="true" inert>

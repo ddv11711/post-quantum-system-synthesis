@@ -18,7 +18,7 @@ from .transitions import apply_actions
 from .visualization import build_graph
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ROOT / "data" / "sources" / "Shablon1"
+SOURCES = ROOT / "data" / "sources" / "Шаблон №1"
 EXAMPLES = ROOT / "examples"
 _REPAIR_LOCK = Lock()  # Z3's default context is shared within this Python process.
 

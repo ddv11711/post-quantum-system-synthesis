@@ -120,3 +120,64 @@ def test_active_quantum_and_hybrid_are_not_claimed_supported(catalog):
     for rule_id in ("CR042", "CR043", "CR046"):
         assert index[rule_id]["formalization"]["support_status"] == "unsupported"
         assert not index[rule_id]["formalization"]["checkers"]
+
+
+def _label_flow_analysis(source_level="secret", destination_level="secret", clearance=None):
+    from analyzer.engine import analyze
+    from analyzer.model import empty_model, fact
+    model = empty_model("catalogue-fragment", "declared-labels")
+    model["security_policy"] = {"enabled": True, "confidentiality_levels": ["public", "secret"]}
+    model["nodes"] = {
+        "subject": {"types": ["subject"], "security_label": {"level": "secret", "categories": []}},
+        "original": {"types": ["data"], "security_label": {"level": source_level, "categories": []}},
+        "copy": {"types": ["data"], "security_label": {"level": destination_level, "categories": []}},
+    }
+    if clearance:
+        model["nodes"]["subject"]["clearance"] = {"level": clearance, "categories": []}
+    model["facts"] = [fact("present", [key]) for key in model["nodes"]]
+    model["transitions"] = [{"id": "copy-flow", "subject": "subject", "source": "original", "target": "copy", "operation": "write", "kind": "flow"}]
+    model["requirements"] = [{"id": "preserve-classification", "checker": "label_flow", "subject": "subject", "source": "original", "object": "copy", "operation": "write", "kind": "flow", "catalog_rule_ids": ["FT025"], "catalog_scope": "fragment"}]
+    return analyze(model)
+
+
+def test_ft025_has_only_an_executable_classification_preservation_fragment(catalog):
+    rule = next(rule for rule in catalog["rules"] if rule["rule_id"] == "FT025")
+    formal = rule["formalization"]
+    assert formal["support_status"] == "implemented"
+    assert formal["implementation_scope"] == "formal_fragment_only"
+    assert formal["whole_rule_implemented"] is False
+    assert [c["checker"] for c in formal["checkers"]] == ["label_flow"]
+    assert "Other security attributes" in formal["checkers"][0]["covered_scope"]
+    assert "tests/test_mandatory.py" in formal["checkers"][0]["test_refs"]
+    assert coverage(catalog)["support_summary"] == {
+        "implemented": 195, "requires_additional_data": 39,
+        "requires_evidence": 54, "unsupported": 36,
+    }
+
+
+def test_ft025_partial_flow_pass_never_certifies_the_whole_catalogue_rule(catalog):
+    analysis = _label_flow_analysis()
+    assert analysis["results"][0]["status"] == "PASS"
+    result = next(r for r in coverage(catalog, analysis, {"FT025": "TRUE"})["rules"] if r["rule_id"] == "FT025")
+    assert result["status"] == "NOT_CHECKED"
+    assert result["whole_rule_implemented"] is False
+    assert result["evaluated_fragments"][0]["status"] == "PASS"
+
+
+def test_ft025_proved_classification_loss_is_reported_as_fragment_failure(catalog):
+    analysis = _label_flow_analysis(destination_level="public")
+    assert analysis["results"][0]["status"] == "FAIL"
+    result = next(r for r in coverage(catalog, analysis, {"FT025": "TRUE"})["rules"] if r["rule_id"] == "FT025")
+    assert result["status"] == "FAIL"
+
+
+def test_ft025_does_not_misreport_clearance_only_failure_as_label_loss(catalog):
+    analysis = _label_flow_analysis(clearance="public")
+    assert analysis["results"][0]["status"] == "FAIL"
+    assert analysis["results"][0]["mandatory"]["confidentiality"]["value"] == "TRUE"
+    result = next(r for r in coverage(catalog, analysis, {"FT025": "TRUE"})["rules"] if r["rule_id"] == "FT025")
+    assert result["status"] == "NOT_CHECKED"
+    fragment = result["evaluated_fragments"][0]
+    assert fragment["status"] == "PASS"
+    assert fragment["source_status"] == "FAIL"
+    assert "confidentiality" in fragment["projection"]

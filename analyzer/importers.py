@@ -194,7 +194,7 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
     as issues and never create nodes or edges.
     """
     from openpyxl import load_workbook
-    from openpyxl.cell.read_only import EMPTY_CELL
+    from openpyxl.cell.read_only import EMPTY_CELL, ReadOnlyCell
 
     path = Path(path)
     global_names = frozenset(global_names)
@@ -217,7 +217,14 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
         # An explicit cluster label permits shared scopes like 'Общая сеть'.
         scope_header = str(headers[order[0]] or "").strip().casefold()
         cluster_mode = scope_header not in {"пк", "pc"}
-        rows = [tuple(row[i] for i in order) for row in actual_rows]
+        rows = [
+            tuple(
+                row[i] if i < len(row) and hasattr(row[i], "coordinate")
+                else ReadOnlyCell(sheet, row_number, i + 1, None)
+                for i in order
+            )
+            for row_number, row in enumerate(actual_rows, start=1)
+        ]
         original_headers = headers
         nodes: dict[str, dict] = {}
         row_records = []
