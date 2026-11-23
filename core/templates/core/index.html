@@ -12,7 +12,7 @@
     <script defer src="{% static 'core/js/main.js' %}"></script>
 </head>
 <body>
-    <a href="{% url 'home' %}" style="position:fixed;bottom:17px;left:17px;z-index:200;background:#fff;color:#252525;border:1px solid #dfe2eb;box-shadow:0 2px 10px #0001;padding:9px 14px;border-radius:9px;text-decoration:none;font:500 13px Inter,Arial,sans-serif">← На главную</a>
+    <a class="home-link" href="{% url 'home' %}" style="position:fixed;bottom:17px;left:17px;z-index:200;background:#fff;color:#252525;border:1px solid #dfe2eb;box-shadow:0 2px 10px #0001;padding:9px 14px;border-radius:9px;text-decoration:none;font:500 13px Inter,Arial,sans-serif">← На главную</a>
     <div class="app" id="security-app" data-template="{{ selected_template }}" data-uploaded-mode="{{ uploaded_mode|yesno:'true,false' }}" data-scenario-url="{% url 'security-scenario' %}" data-example-url="{% url 'graph-example' %}" data-upload-url="{% url 'analyze-upload' %}" data-repair-url="{% url 'repair-model' %}">
         {% csrf_token %}
         <header class="app-header">
@@ -20,7 +20,7 @@
                 <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="m8 9 16 3-10 13L8 9Z" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="9" r="4" fill="currentColor"/><circle cx="24" cy="12" r="4" fill="currentColor"/><circle cx="14" cy="25" r="4" fill="currentColor"/></svg></span>
                 <div><span class="brand-name">BIGVIZOV</span><span class="brand-caption">Логический анализатор</span></div>
             </div>
-            <span class="model-label">{% if uploaded_mode %}Анализ загруженного файла{% else %}4 ПК и общий сетевой диск{% endif %}</span>
+            <span class="model-label" id="model-name">{% if selected_template %}{{ selected_template }}{% else %}{{ initial_filename|default:"Граф системы" }}{% endif %}</span>
         </header>
         <main>
             <div class="page-heading"><h1>Защищённость системы</h1></div>
@@ -38,7 +38,6 @@
                 </details>
                 <span id="file-name" class="input-caption" aria-live="polite">{% if selected_template %}Шаблон: {{ selected_template }}{% else %}Можно загрузить граф или перетащить файл сюда{% endif %}</span>
             </div>
-            <span id="model-name" class="visually-hidden">Граф системы</span>
             <section class="system-status" id="system-status" data-state="loading" aria-labelledby="status-title">
                 <div class="status-symbol" id="status-symbol" aria-hidden="true"><span class="spinner"></span></div>
                 <div class="status-copy" aria-live="polite"><h2 id="status-title">Проверяем граф…</h2><p id="status-description">Загружаем компоненты и проверяем доступ к ресурсам.</p></div>
@@ -48,7 +47,7 @@
             <div class="analysis-workspace">
                 <section class="graph-card" aria-labelledby="graph-title">
                     <header class="graph-header">
-                        <div><h2 id="graph-title">Граф системы</h2><p class="graph-meta"><span id="node-count">—</span> узел · <span id="edge-count">—</span> связей<span id="layer-count-note" hidden> · стрелок F/L/S: <span id="layer-count">—</span></span></p></div>
+                        <div><h2 id="graph-title">Граф системы</h2><p class="graph-meta">Всего узлов: <span id="node-count">—</span> · исходных связей: <span id="edge-count">—</span><span id="layer-count-note" hidden> · стрелок F/L/S: <span id="layer-count">—</span></span></p></div>
                         <div class="phase-switch" role="group" aria-label="Состояние графа">
                             <button type="button" id="before-tab" aria-pressed="true" disabled>До исправления</button>
                             <button type="button" id="after-tab" aria-pressed="false" disabled>После исправления</button>
@@ -64,11 +63,11 @@
                     <details id="profile-details" class="profile-details" hidden><summary>Правила выбранного профиля</summary><p id="active-profile-name"></p><ul id="profile-assumptions"></ul></details>
                     <div id="findings-list" class="findings-list" aria-live="polite"><p class="findings-empty">Проверяем доступ, защиту и регистрацию событий…</p></div>
                     <details id="unknown-details" class="unknown-details" hidden><summary id="unknown-summary">Недостаточно данных</summary><div id="unknown-list"></div></details>
-                    <div class="checks-summary"><span id="check-icon" aria-hidden="true">✓</span><div><strong id="check-count">Проверка выполняется</strong><p id="check-description">Результаты появятся вместе с графом.</p></div></div>
+                    <div class="checks-summary"><span id="check-icon" aria-hidden="true">—</span><div><strong id="check-count">Проверка выполняется</strong><p id="check-description">Результаты появятся вместе с графом.</p></div></div>
                     <details class="coverage-details" id="coverage-details" hidden><summary>Область проверки</summary><div id="coverage-list"></div></details>
                 </aside>
             </div>
-            <footer class="app-footer"><span id="model-notice">Анализ структуры и проверка заданных требований.</span><span>{% if uploaded_mode %}Без семантического профиля права и уязвимости не выводятся из одних связей.{% else %}Учебный сценарий с явно заданными требованиями.{% endif %}</span></footer>
+            <footer class="app-footer"><span id="model-notice">Анализ структуры и проверка заданных требований.</span><span>{% if uploaded_mode %}Неизвестные данные не считаются подтверждением безопасности.{% else %}Вывод относится к выбранной модели и её требованиям.{% endif %}</span></footer>
         </main>
     </div>
     {% if initial_report %}{{ initial_report|json_script:"initial-report" }}{% endif %}

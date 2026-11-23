@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const hint = document.getElementById("file-hint");
     const description = document.getElementById("upload-description");
 
-    let droppedFile = null;
-    function selectedFile() { return droppedFile || input?.files?.[0] || null; }
+    const form = document.getElementById("upload-form");
+    function selectedFile() { return input?.files?.[0] || null; }
     function displayFile(file) {
         if (!hint || !description) return;
         if (!file) {
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (input && target && hint && description) {
-        input.addEventListener("change", () => { droppedFile = null; displayFile(selectedFile()); });
+        input.addEventListener("change", () => { showUploadError(""); displayFile(selectedFile()); });
         ["dragenter", "dragover"].forEach(type => target.addEventListener(type, event => {
             event.preventDefault();
             target.classList.add("is-dragging");
@@ -36,15 +36,20 @@ document.addEventListener("DOMContentLoaded", () => {
             target.classList.remove("is-dragging");
             const files = event.dataTransfer?.files;
             if (!files?.length) return;
-            droppedFile = files[0];
+            if (files.length !== 1) {
+                showUploadError("Загрузите один граф за раз.");
+                return;
+            }
             try {
                 const transfer = new DataTransfer();
                 transfer.items.add(files[0]);
                 input.files = transfer.files;
             } catch (error) {
-                // Still show the dropped file when the browser forbids setting input.files.
+                showUploadError("Не удалось прикрепить файл перетаскиванием. Нажмите на область импорта и выберите его.");
+                return;
             }
-            displayFile(files[0]);
+            showUploadError("");
+            displayFile(selectedFile());
         });
     }
 
@@ -92,72 +97,30 @@ document.addEventListener("DOMContentLoaded", () => {
             uploadFeedback.hidden = !message;
         }
     }
-    // Store only the ORIGINAL File between pages, not the expanded graph report.
-    // IndexedDB supports structured-cloned File objects and avoids the small
-    // per-origin sessionStorage quota.
-    function savePendingImport(file) {
-        return new Promise((resolve, reject) => {
-            if (!window.indexedDB) {
-                reject(new Error("Хранилище IndexedDB недоступно в этом браузере."));
-                return;
-            }
-            const request = indexedDB.open("bigvizov-import-files", 1);
-            request.onupgradeneeded = () => {
-                const db = request.result;
-                if (!db.objectStoreNames.contains("uploads")) db.createObjectStore("uploads");
-            };
-            request.onerror = () => reject(request.error || new Error("Не удалось открыть IndexedDB."));
-            request.onblocked = () => reject(new Error("Хранилище занято другой вкладкой."));
-            request.onsuccess = () => {
-                const db = request.result;
-                let transaction;
-                try {
-                    transaction = db.transaction("uploads", "readwrite");
-                    transaction.objectStore("uploads").put(file, "pending");
-                } catch (error) {
-                    db.close();
-                    reject(error);
-                    return;
-                }
-                transaction.oncomplete = () => { db.close(); resolve(); };
-                transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Ошибка сохранения файла.")); };
-                transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Сохранение файла прервано.")); };
-            };
-        });
-    }
-
-    uploadButton?.addEventListener("click", async () => {
+    // Keep the native multipart navigation: the selected file travels with the
+    // page request and also works when browser storage or JavaScript is disabled.
+    let submitting = false;
+    if (form) form.noValidate = true;
+    form?.addEventListener("submit", event => {
+        if (submitting) { event.preventDefault(); return; }
         const file = selectedFile();
         if (!file) {
-            showUploadError("Сначала добавьте файл в область «Импорт», затем запустите анализ.");
-            input?.focus();
+            event.preventDefault();
+            showUploadError("");
+            openScreen("templates");
             return;
         }
-        if (!/\.(xlsx|html|htm|json)$/i.test(file.name)) {
-            showUploadError("Поддерживаются файлы XLSX, HTML и JSON. ZIP-архивы пока не поддерживаются.");
-            return;
-        }
-        if (file.size > 32 * 1024 * 1024) {
-            showUploadError("Размер файла не должен превышать 32 МБ.");
-            return;
-        }
-        if (uploadButton.disabled) return;
-        uploadButton.disabled = true;
-        uploadButton.textContent = "Открываем анализ…";
+        const error = input.files.length !== 1 ? "Загрузите один граф за раз."
+            : !/\.(xlsx|html|htm|json)$/i.test(file.name) ? "Поддерживаются файлы XLSX, HTML и JSON. ZIP-архивы пока не поддерживаются."
+            : file.size > 32 * 1024 * 1024 ? "Размер файла не должен превышать 32 МБ." : "";
+        if (error) { event.preventDefault(); showUploadError(error); return; }
         showUploadError("");
-        try {
-            await savePendingImport(file);
-            // Clean up legacy data from older versions if storage is available.
-            try { sessionStorage.removeItem("bigvizov-upload-report"); } catch (_) {}
-            const url = new URL(uploadButton.dataset.analysisUrl, location.href);
-            url.searchParams.set("source", "upload");
-            location.assign(url.href);
-        } catch (error) {
-            showUploadError("Не удалось передать файл анализатору: " + (error.message || "хранилище браузера недоступно."));
-        } finally {
-            uploadButton.disabled = false;
-            uploadButton.textContent = "Запустить анализ";
-        }
+        submitting = true;
+        if (uploadButton) { uploadButton.disabled = true; uploadButton.textContent = "Открываем анализ…"; }
+    });
+    window.addEventListener("pageshow", () => {
+        submitting = false;
+        if (uploadButton) { uploadButton.disabled = false; uploadButton.textContent = "Запустить анализ"; }
     });
     document.getElementById("close-templates")?.addEventListener("click", () => openScreen("home"));
     window.addEventListener("popstate", () => switchScreen(getCurrentScreen()));
@@ -183,31 +146,4 @@ document.addEventListener("DOMContentLoaded", () => {
         url.searchParams.set("template", selected.value);
         window.location.href = url.href;
     });
-});
-
-/* AUTO_FIX_V2_MULTIPART_FORM */
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('upload-form');
-    const file = document.getElementById('model-file');
-    const launch = document.getElementById('choose-template');
-    if (!form || !file || !launch) return;
-
-    // When no file is attached, preserve the existing template selection UX.
-    // With an attached file, submit the real multipart form to /analysis/.
-    form.noValidate = true;
-    launch.addEventListener('click', (event) => {
-        if (file.files && file.files.length === 1) {
-            event.stopImmediatePropagation();
-            return;  // normal submit-button action proceeds
-        }
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        document.getElementById('open-templates')?.click();
-    }, true);
-    form.addEventListener('submit', (event) => {
-        if (!file.files || file.files.length !== 1) {
-            event.preventDefault();
-            document.getElementById('open-templates')?.click();
-        }
-    }, true);
 });

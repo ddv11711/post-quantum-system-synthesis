@@ -92,8 +92,10 @@ async def check(args):
                 if request.method == 'POST' and urlparse(request.url).path in API_PATHS else None)
         before = page.locator('.sg-pane[data-graph-phase=before]')
         after = page.locator('.sg-pane[data-graph-phase=after]')
+        await page.goto(base + '/analysis/')
+        assert requests == [], requests
         async with page.expect_response(api_response(EXAMPLE_API)) as pending:
-            await page.goto(base + '/analysis/')
+            await page.locator('#example-button').click()
         response = await pending.value
         assert response.status == 200
         assert response.request.post_data_json == {'example': 'fls'}

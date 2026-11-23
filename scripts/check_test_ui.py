@@ -131,9 +131,11 @@ async def check(args):
         await page.goto(base_url + '/')
         await expect(page.locator('#home-screen')).to_be_visible()
         await expect(page.locator('#security-app')).to_have_count(0)
-        await expect(page.locator('a.demo-link')).to_have_attribute('href', '/analysis/')
+        await expect(page.locator('#open-templates')).to_be_visible()
+        await page.goto(base_url + '/analysis/')
+        assert requests == [], requests
         async with page.expect_response(api_response(EXAMPLE_API)) as pending:
-            await page.locator('a.demo-link').click()
+            await page.locator('#example-button').click()
         assert urlparse(page.url).path == '/analysis/'
         response = await pending.value
         assert response.status == 200
@@ -146,7 +148,7 @@ async def check(args):
         await graph_is_complete(before, default_state)
         await expect(page.locator('.sg-view-tabs [role="tab"]')).to_have_count(5)
         await expect(page.locator('.sg-view-tabs [data-view="clusters"]')).to_have_text('Между ПК')
-        checks.append('The explicit landing demo link opens the F/L/S example with actual PC tabs and 12 declared layer arrows')
+        checks.append('The analyzer opens without a hidden example; its explicit example button loads PC tabs and 12 declared F/L/S arrows')
         original = await upload(page, ROOT / 'examples/portable/mixed_security.json')
         snapshot = initial_state(original)
         assert len(snapshot['graph']['nodes']) == 6
@@ -332,7 +334,7 @@ async def check(args):
         await expect(page.locator('#status-title')).to_have_text('Проверка безопасности не выполнена')
         await page.get_by_role('button', name='Как добавить условия проверки').click()
         assert await page.locator('#format-help').evaluate('(details) => details.open')
-        await expect(page.locator('#format-help')).to_contain_text('требования безопасности')
+        await expect(page.locator('#format-help')).to_contain_text('требования, права и метки')
         await page.locator('#format-help summary').click()
         checks.append('Legacy HTML retains all 231 nodes and 1100 edges; missing substantive requirements show an unperformed check without a zero-violations badge or 0-of-0 success, with working data-format guidance')
 
@@ -354,6 +356,7 @@ async def check(args):
             await route.abort('failed')
         await retry_page.route('**' + EXAMPLE_API, initial_failure)
         await retry_page.goto(base_url + '/tests/')
+        await retry_page.locator('#example-button').click()
         await expect(retry_page.locator('#retry-button')).to_be_visible()
         await expect(retry_page.locator('#repair-button')).to_be_disabled()
         await expect(retry_page.locator('#security-graph .sg-node')).to_have_count(0)

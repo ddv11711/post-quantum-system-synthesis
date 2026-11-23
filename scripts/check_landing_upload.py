@@ -36,7 +36,7 @@ async def submit_file(page, file, *, status=200):
     name = file['name'] if isinstance(file, dict) else Path(file).name
     await expect(page.locator('#file-hint')).to_have_text(name)
     async with page.expect_response(api_response('/analysis/')) as pending:
-        await page.locator('.analyze-link').click()
+        await page.locator('#choose-template').click()
     response = await pending.value
     assert response.status == status, await response.text()
     assert 'multipart/form-data' in response.request.headers['content-type']
@@ -92,18 +92,20 @@ async def check(args):
         await empty.goto(base + '/')
         await expect(empty.locator('#model-file')).to_have_attribute('name', 'file')
         assert await empty.locator('#model-file').evaluate('(input) => input.required')
-        await empty.locator('.analyze-link').click()
-        assert await empty.locator('#model-file').evaluate('(input) => input.validity.valueMissing && Boolean(input.validationMessage)')
+        await empty.locator('#choose-template').click()
+        await expect(empty.locator('#templates-screen')).to_have_class(re.compile(r'\bis-active\b'))
         assert urlparse(empty.url).path == '/'
         assert empty_requests == [], empty_requests
+        await empty.goto(base + '/analysis/')
+        assert not [request for request in empty_requests if request['method'] == 'POST'], empty_requests
         async with empty.expect_response(api_response(EXAMPLE_API)) as pending:
-            await empty.locator('a.demo-link').click()
+            await empty.locator('#example-button').click()
         response = await pending.value
         assert response.status == 200
         demo = initial_state(await response.json())
         await graph_is_complete(empty.locator('.sg-pane[data-graph-phase=before]'), demo)
         assert len(demo['graph']['nodes']) == 6
-        checks.append('Submitting without a file stays on the landing page with native validation; only the explicit demo link loads the example')
+        checks.append('Submitting without a file opens template selection without analysis; the analyzer example runs only after explicitly pressing its example button')
         await empty.close()
 
         page, requests = await new_page(context, errors)
@@ -138,7 +140,7 @@ async def check(args):
         await expect(dropped.locator('#file-hint')).to_have_text(drop_name)
         assert await dropped.locator('#model-file').evaluate('(input) => input.files.length') == 1
         async with dropped.expect_response(api_response('/analysis/')) as pending:
-            await dropped.locator('.analyze-link').click()
+            await dropped.locator('#choose-template').click()
         assert (await pending.value).status == 200
         await dropped.wait_for_url('**/analysis/')
         await inventory_loaded(dropped, drop_requests, drop_name)
@@ -181,7 +183,7 @@ async def check(args):
         await no_js.goto(base + '/')
         await no_js.locator('#model-file').set_input_files(source)
         async with no_js.expect_response(api_response('/analysis/')) as pending:
-            await no_js.locator('.analyze-link').click()
+            await no_js.locator('#choose-template').click()
         response = await pending.value
         assert response.status == 200
         assert 'multipart/form-data' in response.request.headers['content-type']

@@ -309,6 +309,10 @@
         execute('scenario');
     } else {
         lastLoad = {kind: 'upload', file: null};
-        showLoadError('Для анализа выберите файл графа на этой странице или шаблон на главной.');
+        showLoadError('');
+        $('status-title').textContent = 'Выберите граф для анализа';
+        $('status-description').textContent = 'Загрузите файл или откройте шаблон на главной странице.';
+        $('model-name').textContent = 'Граф системы';
+        $('loading-message').textContent = 'Выберите исходный граф';
     }
 })();

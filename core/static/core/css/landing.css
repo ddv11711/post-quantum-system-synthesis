@@ -169,12 +169,21 @@ button { font: inherit; }
 .template-actions .template-run:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
 .template-help { margin: 14px 0; color: #777; text-align: center; font-size: 13px; }
 @media(max-width:600px) {
+  #home-screen .art-crop img,
+  #normative-screen .art-crop img,
+  #templates-screen .art-crop img {
+    width: min(240px, calc(34vh - 24px));
+    height: min(240px, calc(34vh - 24px));
+    top: 12px;
+  }
   .templates-content { width: calc(100% - 36px); }
   .templates-panel { padding: 18px 13px 24px; }
   .template-actions { gap: 10px; }
   .template-actions .back-button, .template-actions .template-run { min-width: 135px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  #home-screen .art-crop img,
+  #normative-screen .art-crop img,
   #templates-screen .art-crop img { transform: translateX(-50%); animation: none; }
 }
 

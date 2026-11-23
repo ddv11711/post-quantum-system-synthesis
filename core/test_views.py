@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from analyzer.scenarios import scenario_catalog as catalogue, run_scenario as execute_scenario
-from .template_registry import resolve_template
+from .template_registry import resolve_template, template_files
 
 
 def _display_state(state):
@@ -42,6 +42,21 @@ def security_scenario(request):
         template = resolve_template(payload.get('template', 'Шаблон №1'))
         if template is None:
             return JsonResponse({'error': 'Шаблон не найден. Выберите шаблон на главной странице.'}, status=400)
+        # Only the original tutorial has the explicit four-PC assumptions and
+        # repair catalogue. Other templates must analyze their own inventory,
+        # not overlay that tutorial onto unrelated identifiers and clusters.
+        if template.name != 'Шаблон №1':
+            if payload.get('repair', False):
+                return JsonResponse({'error': 'Для этого шаблона не задан каталог разрешённых исправлений.'}, status=400)
+            from analyzer.importers import load_xlsx
+            from .views import _structural_input
+            path = template_files(template)['.xlsx']
+            graph = load_xlsx(path, state='template-xlsx')
+            graph['metadata']['uploaded_filename'] = path.name
+            report = _structural_input(graph)
+            report['filename'] = f'{template.name} · {path.name}'
+            report['template'] = template.name
+            return JsonResponse(report, json_dumps_params={'ensure_ascii': False})
         execution = execute_scenario('experiment', repair=payload.get('repair', False),
                                      closed_inventory=True, sources_dir=template)
         source = execution['report']
