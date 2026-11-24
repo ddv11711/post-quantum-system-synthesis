@@ -298,7 +298,16 @@ def build_graph(model, analysis=None):
                         affected[key].add(identifier)
             for key in cause_keys:
                 causes[key].add(identifier)
-            if offender:
+            # A proved forbidden information flow is a red *edge*, not an
+            # accusation against a human user.  The mandate-flow checker does
+            # not create an offender (unlike forbidden_operation), but its
+            # certain witness still identifies the violating transition.
+            forbidden_flow = (
+                checker == "label_flow" and confirmed_path
+                and _value(mandatory.get("allowed")) == "FALSE"
+                and _value(mandatory.get("actual")) == "TRUE"
+            )
+            if offender or forbidden_flow:
                 for edge in witness.get("edges", []):
                     if edge.get("id"):
                         witness_transitions[edge["id"]].add(identifier)

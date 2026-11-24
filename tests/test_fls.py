@@ -213,8 +213,8 @@ def test_schemas_accept_explicit_portable_and_normalized_native_fls():
     root = Path(__file__).resolve().parents[1]
     p = payload(bidirectional=True, protected=True)
     validations = [
-        {'schema': json.loads((root / 'schemas/portable_graph.schema.json').read_text()), 'data': p},
-        {'schema': json.loads((root / 'schemas/model.schema.json').read_text()), 'data': load_portable(p)},
+        {'schema': json.loads((root / 'schemas/portable_graph.schema.json').read_text(encoding="utf-8")), 'data': p},
+        {'schema': json.loads((root / 'schemas/model.schema.json').read_text(encoding="utf-8")), 'data': load_portable(p)},
     ]
     try:
         import jsonschema

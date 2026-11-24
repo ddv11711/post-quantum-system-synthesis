@@ -107,7 +107,8 @@ def test_cluster_excel_checks_downward_flow_on_upload_without_second_action(clie
     assert report['profile_applied'] == 'automatic' and not report.get('available_profiles')
     assert state['graph']['summary']['node_count'] == 4
     assert state['graph']['summary']['structural_edges'] == 3
-    assert not state['model']['completeness'] and not state['model']['mutable']
+    assert len(state['model']['completeness']) == len(state['model']['transitions']) == 1
+    assert not state['model']['mutable']
 
 
 @pytest.mark.parametrize('change', [

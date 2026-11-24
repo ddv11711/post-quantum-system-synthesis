@@ -7,6 +7,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from analyzer.scenarios import scenario_catalog as catalogue, run_scenario as execute_scenario
 from .template_registry import resolve_template, template_files
+from .analysis_configuration import template_analysis_config
 
 
 def _display_state(state):
@@ -42,29 +43,41 @@ def security_scenario(request):
         template = resolve_template(payload.get('template', 'Шаблон №1'))
         if template is None:
             return JsonResponse({'error': 'Шаблон не найден. Выберите шаблон на главной странице.'}, status=400)
-        # Only the original tutorial has the explicit four-PC assumptions and
-        # repair catalogue. Other templates must analyze their own inventory,
-        # not overlay that tutorial onto unrelated identifiers and clusters.
-        if template.name != 'Шаблон №1':
-            if payload.get('repair', False):
-                return JsonResponse({'error': 'Для этого шаблона не задан каталог разрешённых исправлений.'}, status=400)
+        # Only an installed, explicitly configured scenario may apply an
+        # educational policy. Other templates use their own workbook data.
+        config = template_analysis_config(template)
+        if config['mode'] != 'declared_scenario':
             from analyzer.importers import load_xlsx
-            from .views import _structural_input
+            from .views import _structural_input, _repair_mandate_report
             path = template_files(template)['.xlsx']
             graph = load_xlsx(path, state='template-xlsx')
             graph['metadata']['uploaded_filename'] = path.name
             report = _structural_input(graph)
             report['filename'] = f'{template.name} · {path.name}'
             report['template'] = template.name
+            state = report['states'].get('imported', {})
+            model = state.get('model', {})
+            supported = model.get('profile') == 'mandate-flows-v1' and any(
+                entry.get('status') == 'FAIL' and entry.get('checker') == 'label_flow'
+                for entry in state.get('analysis', {}).get('results', []))
+            if supported:
+                report['repair_capability'] = {'type': 'mandate_flow', 'simulation': True}
+            if payload.get('repair', False):
+                if not supported:
+                    return JsonResponse({'error': 'Для этого шаблона нет подтверждённых мандатных нарушений для исправления.'}, status=400)
+                report = _repair_mandate_report(report)
             return JsonResponse(report, json_dumps_params={'ensure_ascii': False})
-        execution = execute_scenario('experiment', repair=payload.get('repair', False),
-                                     closed_inventory=True, sources_dir=template)
+        execution = execute_scenario(config['scenario'], repair=payload.get('repair', False),
+                                     closed_inventory=config['closed_inventory'], sources_dir=template)
         source = execution['report']
+        if config['scenario'] not in source.get('states', {}):
+            raise ValueError('Указанный сценарий не поддерживает страницу анализа.')
         report = {
             'kind': 'analysis_bundle', 'schema_version': 1, 'display_mode': 'fresh_analysis',
-            'scenario': {'id': 'experiment', 'title': template.name if 'template' in payload else 'Четыре ПК и общий сетевой диск',
-                         'closed_inventory': True, 'educational': True},
-            'states': {'before': _display_state(source['states']['experiment'])},
+            'scenario': {'id': config['scenario'],
+                         'title': template.name if 'template' in payload else 'Четыре ПК и общий сетевой диск',
+                         'closed_inventory': config['closed_inventory'], 'educational': True},
+            'states': {'before': _display_state(source['states'][config['scenario']])},
             'assumptions': source.get('assumptions', []),
             'duration_ms': execution['duration_ms'],
             'notice': 'Учебный пример: Excel считается полным перечнем объектов. Права и изменения заданы явно в демонстрационном профиле.',
@@ -79,7 +92,7 @@ def security_scenario(request):
                 actual = after['analysis']
                 by_id = {finding['id']: finding['status'] for finding in actual['results']}
                 targets = repair.get('targets', [])
-                original_ids = {finding['id'] for finding in source['states']['experiment']['analysis']['results']}
+                original_ids = {finding['id'] for finding in source['states'][config['scenario']]['analysis']['results']}
                 verified = (repair.get('independently_rechecked') is True and not actual.get('model_errors')
                             and targets and original_ids <= by_id.keys()
                             and all(status == 'PASS' for status in by_id.values())

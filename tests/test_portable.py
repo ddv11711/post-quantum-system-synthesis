@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def fixture(name='mixed_security'):
-    return json.loads((ROOT / f'examples/portable/{name}.json').read_text())
+    return json.loads((ROOT / f'examples/portable/{name}.json').read_text(encoding="utf-8"))
 
 
 def simple():

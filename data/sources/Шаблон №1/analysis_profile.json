@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "mode": "declared_scenario",
+  "scenario": "experiment",
+  "closed_inventory": true
+}

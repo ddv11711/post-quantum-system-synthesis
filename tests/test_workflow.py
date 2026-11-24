@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_cli_complete_workflow(tmp_path, capsys):
     assert main(['demo', '--closed-inventory', '--out', str(tmp_path)]) == 0
-    bundle = json.loads((tmp_path/'report.json').read_text())
+    bundle = json.loads((tmp_path/'report.json').read_text(encoding="utf-8"))
     assert bundle['states']['baseline']['analysis']['summary'] == {'PASS': 12}
     assert bundle['states']['changed']['analysis']['summary'] == {'PASS': 11, 'FAIL': 1}
     assert bundle['states']['experiment']['analysis']['summary'] == {'PASS': 9, 'FAIL': 3}
@@ -56,9 +56,9 @@ def test_quantum_profile_does_not_create_active_read_or_write():
 
 def test_standalone_fixtures_and_matrix_semantics():
     fixture_root = ROOT/'examples/fixtures'
-    expected = json.loads((fixture_root/'expected.json').read_text())
+    expected = json.loads((fixture_root/'expected.json').read_text(encoding="utf-8"))
     for name, statuses in expected.items():
-        model = json.loads((fixture_root/(name+'.json')).read_text())
+        model = json.loads((fixture_root/(name+'.json')).read_text(encoding="utf-8"))
         report = analyze(model)
         assert not report['model_errors'], report
         assert [r['status'] for r in report['results']] == statuses

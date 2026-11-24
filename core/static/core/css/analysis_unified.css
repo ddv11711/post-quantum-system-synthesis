@@ -1,0 +1,186 @@
+/* Unified monochrome style for the analysis page.
+   Visual layer only: analyser state, graph data and event handlers stay unchanged. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    color-scheme: light;
+    --ink: #242424;
+    --muted: #787878;
+    --line: #d1d1d1;
+    --accent: #191919;
+    --red: #ae424d;
+    --green: #39785e;
+    background: #f2f2f2;
+}
+
+html, body { background: #f2f2f2; }
+body { color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+button { font-family: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 2px solid #555; outline-offset: 3px;
+}
+.app { max-width: 1530px; padding: 0 34px 56px; }
+.app main { min-width: 0; }
+
+/* The same visual tone as the landing page: ample space, no brand banner. */
+.analysis-page-heading {
+    min-height: 130px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 22px; padding: 29px 0 23px;
+}
+.analysis-page-heading-title { min-width: 0; }
+.analysis-page-eyebrow { display: block; width: 48px; height: 3px; margin: 0 0 20px; background: #1b1b1b; border-radius: 999px; }
+.analysis-page-heading h1 { margin: 0; color: #212121; font-size: clamp(27px, 2.45vw, 37px); line-height: 1.18; letter-spacing: -.045em; font-weight: 500; }
+.analysis-home-link {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; gap: 10px;
+    min-height: 43px; padding: 11px 21px; border: 1px solid #bcbcbc; border-radius: 999px;
+    background: transparent; color: #444; text-decoration: none; font-size: 14px; font-weight: 500;
+    transition: background .22s ease, border-color .22s ease, transform .22s ease;
+}
+.analysis-home-link:hover { background: #e7e7e7; border-color: #777; transform: translateY(-1px); }
+
+/* Summary status: a slim outlined panel rather than a coloured card. */
+.system-status {
+    gap: 19px; min-height: 104px; margin-bottom: 21px; padding: 21px 26px;
+    background: #f6f6f6; border: 1px solid #a6a6a6; border-radius: 15px; box-shadow: none;
+}
+.status-symbol { width: 48px; height: 48px; border: 1px solid #d7d7d7; border-radius: 13px; background: #eaeaea; color: #4c4c4c; }
+.status-copy h2 { font-size: 19px; font-weight: 600; letter-spacing: -.025em; color: #252525; }
+.status-copy p { font-size: 13px; color: #737373; }
+.system-status[data-state="loading"] .status-symbol { background: #ebebeb; color: #4a4a4a; }
+.system-status[data-state="success"] { background: #f6f6f6; border-color: #a8b9ac; }
+.system-status[data-state="success"] .status-symbol { background: #e5f0e8; color: #367754; }
+.system-status[data-state="danger"], .system-status[data-state="fail"] { background: #f7f5f5; border-color: #c9a1a4; }
+.system-status[data-state="danger"] .status-symbol, .system-status[data-state="fail"] .status-symbol { background: #f5e6e8; color: #ae424d; }
+.system-status[data-state="warning"] .status-symbol { background: #f6eedf; color: #8e6939; }
+
+.primary-button {
+    min-height: 48px; padding: 12px 27px; border: 1px solid #191919; border-radius: 999px;
+    background: #191919; color: #fff; font-size: 14px; font-weight: 500; box-shadow: none;
+    transition: transform .22s ease, background .22s ease, box-shadow .22s ease;
+}
+.primary-button:hover:not(:disabled) { background: #343434; border-color: #343434; box-shadow: 0 7px 16px #00000014; transform: translateY(-1px); }
+.primary-button:disabled, .system-status[data-state="success"] .primary-button:disabled {
+    border-color: #d6d6d6; background: #e6e6e6; color: #999; box-shadow: none; opacity: 1;
+}
+.system-status[data-state="success"] .primary-button:not(:disabled) { background: #191919; border-color: #191919; color: #fff; }
+.page-feedback { margin: 0 0 17px; font-size: 14px; color: #9d3747; }
+
+/* Two independent work areas, using the same outlined cards as the landing sections. */
+.analysis-workspace { grid-template-columns: minmax(0, 1fr) 338px; gap: 20px; align-items: start; }
+.graph-card {
+    background: #f7f7f7; border: 1px solid #8b8b8b; border-radius: 15px;
+    box-shadow: none; overflow: hidden;
+}
+.graph-header {
+    min-height: 94px; padding: 23px 25px; border-bottom: 1px solid #d4d4d4;
+    background: #f7f7f7;
+}
+.graph-header h2, .findings-heading h2 { font-size: 20px; font-weight: 500; line-height: 1.4; color: #262626; letter-spacing: -.025em; }
+.graph-meta { margin-top: 6px; font-size: 12px; color: #898989; }
+.phase-switch { padding: 4px; gap: 3px; border: 1px solid #d3d3d3; border-radius: 999px; background: #ebebeb; }
+.phase-switch button { min-height: 35px; padding: 8px 13px; border-radius: 999px; font-size: 12px; color: #666; font-weight: 500; }
+.phase-switch button[aria-pressed="true"] { background: #1f1f1f; color: white; box-shadow: none; }
+.phase-switch button:hover:not(:disabled):not([aria-pressed="true"]) { background: #dedede; color: #1f1f1f; }
+.phase-switch button:disabled:not([aria-pressed="true"]) { color: #a8a8a8; }
+#security-graph { background: #fafafa; }
+.graph-loading { color: #757575; background: #fafafa; }
+.graph-footer { min-height: 57px; padding: 16px 24px; border-top: 1px solid #d4d4d4; background: #f7f7f7; color: #747474; }
+.graph-tip { color: #949494; }
+.graph-legend { gap: 17px; }
+.legend-dot { border-radius: 50%; }
+
+.findings-panel {
+    min-width: 0; padding: 23px 21px 20px; border: 1px solid #8b8b8b;
+    border-radius: 15px; background: #f7f7f7;
+}
+.findings-heading { margin: 0 0 17px; padding: 0 0 16px; border-bottom: 1px solid #dadada; }
+.finding-count { background: #e8e8e8; border-color: #d5d5d5; color: #666; }
+.findings-list { max-height: 665px; padding-right: 3px; gap: 10px; }
+.finding-card, .profile-choice {
+    padding: 14px 13px; border: 1px solid #dfdfdf; border-radius: 12px;
+    background: #fff; box-shadow: none; color: #242424;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.finding-card:hover { border-color: #9f9f9f; background: #fff; box-shadow: none; transform: translateY(-1px); }
+.finding-content strong { font-size: 13px; font-weight: 600; color: #292929; }
+.finding-content > span, .findings-empty { color: #747474; }
+.finding-mark { border-radius: 8px; }
+.checks-summary { margin-top: 19px; padding-top: 18px; border-top: 1px solid #dadada; }
+.checks-summary > span { background: #e6e6e6; color: #656565; }
+.checks-summary strong { font-weight: 600; }
+.checks-summary p { color: #818181; }
+.profile-details, .unknown-details, .coverage-details { border-color: #d5d5d5; color: #666; }
+.profile-details summary, .unknown-details summary, .coverage-details summary { color: #414141; }
+
+/* Shared graph renderer: monochrome controls; semantic violation/fixed colours remain. */
+.sg-comparison.sg-compact { color: #252525; }
+.sg-compact .sg-global-controls, .sg-compact .sg-pane-tools, .sg-compact .sg-search-results {
+    background: #f7f7f7; border-color: #dfdfdf;
+}
+.sg-compact .sg-global-controls input {
+    background: #fff; border-color: #d1d1d1; border-radius: 9px; color: #252525;
+}
+.sg-compact .sg-button, .secondary-button {
+    background: #fefefe; border: 1px solid #c7c7c7; border-radius: 999px;
+    color: #414141; font-size: 12px; font-weight: 500; box-shadow: none;
+    transition: border-color .2s ease, background .2s ease;
+}
+.sg-compact .sg-button:hover:not(:disabled), .secondary-button:hover:not(:disabled) {
+    color: #222; border-color: #8c8c8c; background: #ededed;
+}
+.sg-compact .sg-canvas { background: #fafafa; }
+.sg-compact .sg-group-box { fill: #f0f0f0; stroke: #d5d5d5; }
+.sg-compact .sg-group-title { fill: #686868; }
+.sg-compact .sg-node-shape { fill: #dedede; stroke: #8d8d8d; }
+.sg-compact .sg-actor .sg-node-shape { fill: #d5d5d5; stroke: #797979; }
+.sg-compact .sg-node.sg-violator .sg-node-shape { fill: #c84c56; stroke: #96303b; }
+.sg-compact .sg-node.sg-warning .sg-node-shape { fill: #f5dfb4; stroke: #b18a48; }
+.sg-compact .sg-node.sg-fixed .sg-node-shape { fill: #66ae84; stroke: #347452; }
+.sg-compact .sg-inspector { background: #f6f6f6; border-color: #dadada; }
+.sg-compact .sg-inspector h4 { color: #292929; }
+
+@media (max-width: 1200px) {
+    .app { padding: 0 26px 42px; }
+    .analysis-workspace { grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+    .graph-header { padding: 19px 20px; }
+    .findings-panel { padding: 20px 17px; }
+}
+@media (max-width: 980px) {
+    .analysis-workspace { grid-template-columns: 1fr; }
+    .findings-panel { padding: 22px; }
+    .findings-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; }
+    .graph-header { flex-direction: row; align-items: center; }
+}
+@media (max-width: 650px) {
+    .app { padding: 0 16px 28px; }
+    .analysis-page-heading { min-height: 106px; padding: 26px 0 17px; gap: 10px; }
+    .analysis-page-heading h1 { font-size: clamp(22px, 6vw, 28px); }
+    .analysis-page-eyebrow { width: 35px; margin-bottom: 13px; }
+    .analysis-home-link { min-height: 39px; padding: 9px 12px; font-size: 12px; gap: 7px; }
+    .analysis-home-link svg { width: 14px; height: 14px; }
+    .system-status { padding: 17px 15px; border-radius: 13px; gap: 12px; margin-bottom: 16px; }
+    .status-symbol { width: 40px; height: 40px; }
+    .status-copy h2 { font-size: 16px; }
+    .status-copy p { font-size: 12px; }
+    .primary-button { width: 100%; margin: 5px 0 0; }
+    .graph-header { min-height: 0; flex-direction: column; align-items: stretch; gap: 15px; padding: 18px 16px; }
+    .graph-header h2, .findings-heading h2 { font-size: 18px; }
+    .graph-footer { padding: 12px 15px; }
+    .phase-switch { align-self: stretch; }
+    .phase-switch button { flex: 1; font-size: 12px; }
+    .findings-panel { padding: 18px 16px; }
+    .findings-list { display: grid; grid-template-columns: 1fr; }
+    .sg-compact .sg-canvas { height: 340px; min-height: 340px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .analysis-home-link, .primary-button, .finding-card, .sg-compact .sg-button { transition: none; }
+}
+
+/* Optional repaired workbook download; keeps the established monochrome design. */
+.analysis-export-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.analysis-export-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 19px; border: 1px solid #999; border-radius: 999px; background: transparent; color: #202020; font-size: 13px; font-weight: 500; white-space: nowrap; transition: background .2s, border-color .2s; }
+.analysis-export-button:hover:not(:disabled) { background: #e7e7e7; border-color: #555; }
+.analysis-export-button:disabled { opacity: .55; cursor: wait; }
+.analysis-export-button[hidden] { display: none !important; }
+@media (max-width: 800px) { .analysis-export-actions { width: 100%; justify-content: stretch; } .analysis-export-actions > button { flex: 1 1 100%; } }

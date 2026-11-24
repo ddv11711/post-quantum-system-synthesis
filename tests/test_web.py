@@ -34,16 +34,21 @@ def upload(client, name, content):
     return client.post("/api/analyze/", {"file": SimpleUploadedFile(name, content)}, HTTP_X_CSRFTOKEN=token)
 
 
-def test_page_uses_one_graph_workspace_with_upload_and_example(client):
+def test_page_uses_one_graph_workspace_without_obsolete_upload_toolbar(client):
     response = client.get("/analysis/")
-    text = response.content.decode()
-    assert 'data-example-url="/api/graph-example/"' in text
+    assert response.status_code == 200
+    text = response.content.decode('utf-8')
     assert 'data-upload-url="/api/analyze/"' in text
     assert 'csrfmiddlewaretoken' in text
     assert 'id="security-graph"' in text
     assert 'id="repair-button"' in text
     assert 'id="before-tab"' in text and 'id="after-tab"' in text
-    assert '<select' not in text and 'id="graph-file"' in text
+    # The graph is now imported on the landing page; the old toolbar, example
+    # launcher and format disclosure were intentionally removed from /analysis/.
+    assert 'id="graph-file"' not in text
+    assert 'data-example-url=' not in text
+    assert 'id="format-details"' not in text
+    assert '<select' not in text
     assert 'href="/tests/"' not in text
     assert 'name="fstec"' not in text
     assert 'name="attack_mode"' not in text

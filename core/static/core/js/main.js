@@ -36,7 +36,21 @@
         });
     }
 
-    let report = null, graphView = null, phase = 'before', busy = false, lastLoad = {kind: 'upload', file: null};
+    let report = null, graphView = null, phase = 'before', busy = false, exportBusy = false, lastLoad = {kind: 'upload', file: null};
+    let cachedRepairSource = null;
+    function repairSourceFile() {
+        if (lastLoad.file && /\.xlsx$/i.test(lastLoad.file.name || '')) return lastLoad.file;
+        if (cachedRepairSource) return cachedRepairSource;
+        const stored = $('initial-repair-source');
+        if (!stored) return null;
+        const {filename, content} = JSON.parse(stored.textContent);
+        if (!/\.xlsx$/i.test(filename) || typeof content !== 'string') return null;
+        const binary = atob(content);
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        cachedRepairSource = new File([bytes], filename,
+            {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        return cachedRepairSource;
+    }
     const icons = {
         warning: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 3 7v6c0 5 9 8 9 8s9-3 9-8V7l-9-4Z" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v5m0 3v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
         success: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 3 7v6c0 5 9 8 9 8s9-3 9-8V7l-9-4Z" stroke="currentColor" stroke-width="1.7"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
@@ -53,21 +67,23 @@
     }
     function feedback(message) { $('page-feedback').textContent = message; $('page-feedback').hidden = !message; }
     function retryLoad() {
-        if (lastLoad.kind === 'upload' && !lastLoad.file) $('graph-file').click();
-        else execute(lastLoad.kind, lastLoad.file);
+        if (lastLoad.kind === 'upload' && !lastLoad.file) {
+            window.location.href = '/';
+            return;
+        }
+        execute(lastLoad.kind, lastLoad.file);
     }
     function showLoadError(message, filename = '') {
         graphView?.destroy(); graphView = null; report = null; phase = 'before';
         const loading = el('div', null, 'graph-loading');
         const caption = el('p', 'Граф не загружен'); caption.id = 'loading-message';
-        const retry = el('button', lastLoad.kind === 'upload' && !lastLoad.file ? 'Выбрать файл' : 'Повторить загрузку', 'secondary-button');
+        const retry = el('button', lastLoad.kind === 'upload' && !lastLoad.file ? 'Вернуться на главную' : 'Повторить загрузку', 'secondary-button');
         retry.id = 'retry-button'; retry.type = 'button'; retry.addEventListener('click', retryLoad);
         loading.append(caption, retry); $('security-graph').replaceChildren(loading);
         $('security-graph').setAttribute('aria-busy', 'false');
         $('system-status').dataset.state = 'warning'; $('status-symbol').innerHTML = icons.warning;
         $('status-title').textContent = 'Не удалось загрузить граф';
         $('status-description').textContent = 'Выберите исходный файл ещё раз. Результат анализа не сформирован.';
-        $('model-name').textContent = filename || 'Файл не загружен'; $('file-name').textContent = filename;
         $('node-count').textContent = '—'; $('edge-count').textContent = '—'; $('layer-count-note').hidden = true;
         $('check-count').textContent = 'Проверка не выполнена'; $('check-description').textContent = 'Сначала загрузите граф.';
         $('check-icon').textContent = '—'; $('check-icon').classList.remove('is-complete');
@@ -75,7 +91,6 @@
         $('findings-list').replaceChildren(el('p', 'Результат появится после загрузки файла.', 'findings-empty'));
         $('unknown-details').hidden = true; $('coverage-details').hidden = true; $('profile-details').hidden = true;
         $('before-tab').disabled = true; $('after-tab').disabled = true; $('repair-button').disabled = true;
-        $('graph-file').disabled = false; $('example-button').disabled = false;
         feedback(message);
     }
     function normalize(data) {
@@ -88,12 +103,20 @@
         const latest = state('repaired') || state('before'), s = summary(latest);
         const clean = s.applicable > 0 && !s.fail && !s.unknown && !s.errors;
         const saved = report?.display_mode === 'saved_report';
-        const canRepair = !saved && (state('before')?.model?.action_catalog?.length > 0 || Boolean(app.dataset.template && report?.scenario));
+        const flowRepair = report?.repair_capability?.type === 'mandate_flow';
+        const sourceAvailable = !!app.dataset.template || /\.xlsx$/i.test(lastLoad.file?.name || '') || !!$('initial-repair-source');
+        const canRepair = !saved && (state('before')?.model?.action_catalog?.length > 0 ||
+            Boolean(app.dataset.template && report?.scenario) || (flowRepair && sourceAvailable));
         let title, description;
         if (s.errors) { title = 'В описании модели есть ошибки'; description = 'Исправьте противоречия и ссылки в исходных данных. Заключение о безопасности не сформировано.'; }
         else if (!s.applicable) { title = 'Проверка безопасности не выполнена'; description = 'Граф построен, но нет применимых требований безопасности. По одним компонентам и связям определить нарушителей нельзя.'; }
         else if (s.fail) { title = `Найдено нарушений: ${s.fail}`; description = canRepair ? 'Можно подобрать исправления из разрешённых для этой модели действий.' : 'Нарушения показаны справа. Для автоматического исправления задайте разрешённые действия.'; }
-        else if (s.unknown) { title = 'Не все требования удалось проверить'; description = `Неизвестных или неподдержанных условий: ${s.unknown}. Нужны дополнительные данные.`; }
+        else if (s.unknown) {
+            title = state('repaired') ? 'Подтверждённые нарушения устранены' : 'Не все требования удалось проверить';
+            description = state('repaired')
+                ? `Исправления повторно проверены. Условий, требующих дополнительных данных: ${s.unknown}.`
+                : `Неизвестных или неподдержанных условий: ${s.unknown}. Нужны дополнительные данные.`;
+        }
         else { title = state('repaired') ? 'Найденные нарушения устранены' : 'Заданные требования выполнены'; description = 'Вывод относится к описанным фактам и требованиям этой модели.'; }
         if (report?.repair && !state('repaired') && s.fail) description = repairReason(report.repair);
         if (saved) description = 'Сохранённый отчёт: результаты показаны без нового вычисления. Для новой проверки загрузите модель.';
@@ -102,11 +125,18 @@
         $('status-title').textContent = busy ? 'Выполняем проверку…' : title;
         $('status-description').textContent = busy ? 'Проверяем требования и сохраняем исходное состояние графа.' : description;
         $('repair-button').disabled = busy || saved || !s.fail || !!s.errors || !canRepair || !!state('repaired');
-        $('repair-button').textContent = busy ? 'Проверяем…' : state('repaired') ? 'Исправления проверены' : report?.repair ? 'Повторить исправление' : 'Исправить уязвимости';
+        $('repair-button').textContent = busy ? 'Проверяем…' : state('repaired') ? 'Исправления проверены' : report?.repair ? 'Повторить исправление' : 'Исправить нарушения';
+        const exportButton = $('export-repaired-button');
+        if (exportButton) {
+            const canExport = !!state('repaired') && (!!app.dataset.template || !!repairSourceFile());
+            exportButton.hidden = !canExport;
+            exportButton.disabled = busy || exportBusy || !canExport;
+            exportButton.classList.toggle('is-exporting', exportBusy);
+            exportButton.setAttribute('aria-busy', String(exportBusy));
+            exportButton.querySelector('.analysis-export-button-label').textContent = exportBusy ? 'Подготавливаем Excel' : 'Экспортировать Excel';
+        }
         $('before-tab').disabled = busy || !report;
         $('after-tab').disabled = busy || !state('repaired');
-        $('graph-file').disabled = busy;
-        $('example-button').disabled = busy;
         for (const button of app.querySelectorAll('[data-profile-id]')) button.disabled = busy || button.dataset.profileUnavailable === 'true';
     }
     function repairReason(repair) {
@@ -122,8 +152,9 @@
         if (!fixed && finding.status === 'UNKNOWN' && missing.length) content.append(el('small', (readiness ? '' : 'Нужно уточнить: ') + missing.slice(0, 4).map(x => readiness ? (x.args || []).join('; ') : `${x.predicate || x.field || 'условие'}${x.args?.length ? ' (' + x.args.join(', ') + ')' : ''}`).join('; ')));
         card.append(mark, content);
         card.addEventListener('click', () => {
-            const keys = [finding.offender, ...(finding.causes || []), finding.object, finding.subject].filter(Boolean);
-            graphView?.focusNodes(finding.offender ? [finding.offender] : keys);
+            // Delegate focus to the graph: a mandate-flow violation can link
+            // distant PCs, so fitting both ends would barely zoom on large graphs.
+            graphView?.focusFinding(finding);
             if (window.matchMedia('(max-width:900px)').matches) $('security-graph').scrollIntoView({block: 'center', behavior: 'instant'});
         });
         return card;
@@ -142,15 +173,6 @@
         if (!visible.length) list.append(el('p', s.errors ? 'Проверки заблокированы ошибками модели.' : !s.applicable ? 'Защищённость не определена. Нужны правила доступа или требования к компонентам; список связей их не заменяет.' : s.unknown ? 'Подтверждённых нарушений нет, но часть проверок не завершена.' : 'Нарушений заданных требований не обнаружено.', 'findings-empty'));
         const profiles = (Array.isArray(report.available_profiles) ? report.available_profiles : []).filter(profile =>
             profile && ['id', 'name', 'description'].every(key => typeof profile[key] === 'string' && profile[key].trim()));
-        if (!s.applicable && !s.errors && !profiles.length) {
-            const help = el('button', 'Как добавить условия проверки', 'text-button'); help.type = 'button';
-            help.setAttribute('aria-controls', 'format-help');
-            help.addEventListener('click', () => {
-                const details = $('format-help'); details.open = true;
-                details.querySelector('summary').focus(); details.scrollIntoView({block: 'center', behavior: 'instant'});
-            });
-            list.append(help);
-        }
         for (const profile of profiles) {
             const card = el('div', null, 'profile-choice');
             card.append(el('strong', profile.name), el('p', profile.description));
@@ -205,9 +227,6 @@
         report = normalized; graphView?.destroy(); phase = repaired && state('repaired') ? 'after' : 'before';
         graphView = window.SecurityGraphComparison.mount($('security-graph'), report, {compact: true, phase, beforeState: 'before', viewState});
         $('security-graph').setAttribute('aria-busy', 'false');
-        $('model-name').textContent = data.filename || state('before').model?.name || state('before').model?.state || 'Загруженная модель';
-        $('file-name').textContent = data.example ? 'Учебный пример · можно заменить своим графом' : data.filename || '';
-        $('model-notice').textContent = data.notice || (summary(state()).applicable ? 'Проверены явно заданные требования модели.' : 'Показана структура модели. Проверка безопасности не выполнена.');
         renderFindings();
     }
     async function execute(kind, file, profile) {
@@ -216,15 +235,18 @@
         busy = true; feedback('');
         if (report) renderStatus();
         else {
-            $('retry-button').hidden = true; $('graph-file').disabled = true; $('example-button').disabled = true;
+            $('retry-button').hidden = true;
             $('loading-message').textContent = 'Загружаем и проверяем граф';
             $('system-status').dataset.state = 'loading'; $('status-symbol').innerHTML = '<span class="spinner"></span>';
             $('status-title').textContent = 'Загружаем граф…'; $('status-description').textContent = 'Проверяем выбранные данные.';
         }
-        const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 60000);
+        if (kind !== 'repair') {
+            window.AnalysisLoading?.show(kind === 'profile' ? 'Применяем профиль…' : 'Анализируем систему…');
+        }
+        const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), kind === 'repair' ? 120000 : 60000);
         try {
             const headers = {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value};
-            let url = app.dataset.exampleUrl, body;
+            let url = app.dataset.uploadUrl, body;
             if (kind === 'upload') { if (!file) throw new Error('Выберите файл графа.'); url = app.dataset.uploadUrl; body = new FormData(); body.append('file', file); }
             else if (kind === 'profile') {
                 const graph = state('before')?.model?.source_graph;
@@ -238,16 +260,24 @@
                 headers['Content-Type'] = 'application/json';
                 body = JSON.stringify({repair: false, template: app.dataset.template});
             }
-            else if (kind === 'repair' && app.dataset.template && report?.scenario) {
+            else if (kind === 'repair' && app.dataset.template &&
+                     (report?.scenario || report?.repair_capability?.type === 'mandate_flow')) {
                 url = app.dataset.scenarioUrl;
                 headers['Content-Type'] = 'application/json';
                 body = JSON.stringify({repair: true, template: app.dataset.template});
+            }
+            else if (kind === 'repair' && report?.repair_capability?.type === 'mandate_flow') {
+                const source = repairSourceFile();
+                if (!source) throw new Error('Исходный Excel не найден. Загрузите файл повторно.');
+                url = app.dataset.repairUrl;
+                body = new FormData();
+                body.append('source_file', source, source.name);
             }
             else if (kind === 'repair') {
                 const model = state('before')?.model;
                 if (!model) throw new Error('Отчёт не содержит модель для исправления. Загрузите исходный файл.');
                 url = app.dataset.repairUrl; body = new FormData(); body.append('file', new Blob([JSON.stringify({model})], {type: 'application/json'}), 'model.json');
-            } else { headers['Content-Type'] = 'application/json'; body = JSON.stringify({example: 'fls'}); }
+            } else { throw new Error('Неизвестный режим анализа.'); }
             const response = await fetch(url, {method: 'POST', headers, body, signal: controller.signal});
             let data; try { data = await response.json(); } catch (_) { throw new Error('Некорректный ответ сервера. Проверьте формат и размер графа.'); }
             if (!response.ok) throw new Error(data.error || 'Не удалось проверить граф.');
@@ -263,18 +293,62 @@
                 showLoadError(message, file?.name || '');
             } else feedback(message);
         } finally {
-            clearTimeout(timeout); busy = false; $('graph-file').disabled = false; $('example-button').disabled = false;
+            clearTimeout(timeout); busy = false;
+            if (kind !== 'repair') window.AnalysisLoading?.hide();
             if (report) renderStatus();
         }
     }
+    // Re-run verification on the server and export the original five-column XLSX.
+    // Never send expanded graph JSON or client-chosen action IDs to the server.
+    async function exportRepairedWorkbook() {
+        if (busy || exportBusy || !state('repaired')) return;
+        const source = app.dataset.template ? null : repairSourceFile();
+        if (!app.dataset.template && !source) {
+            feedback('Исходный XLSX недоступен для экспорта. Загрузите файл повторно.');
+            return;
+        }
+        exportBusy = true;
+        renderStatus();
+        feedback('');
+        // The export button itself displays progress; no full-page overlay.
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 180000);
+        try {
+            const body = new FormData();
+            if (app.dataset.template) body.append('template', app.dataset.template);
+            else body.append('source_file', source, source.name);
+            const response = await fetch(app.dataset.exportUrl, {
+                method: 'POST',
+                headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value},
+                body, signal: controller.signal
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || 'Не удалось экспортировать исправленный Excel.');
+            }
+            const payload = await response.blob();
+            const disposition = response.headers.get('Content-Disposition') || '';
+            let filename = 'Конфигурация_после_исправления.xlsx';
+            const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+            const plainName = disposition.match(/filename="([^"]+)"/i);
+            if (encodedName) filename = decodeURIComponent(encodedName[1]);
+            else if (plainName) filename = plainName[1];
+            const url = URL.createObjectURL(payload);
+            const link = document.createElement('a');
+            link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+        } catch (error) {
+            feedback(error.name === 'AbortError' ? 'Превышено время подготовки файла.' : error.message);
+        } finally {
+            clearTimeout(timeout);
+            exportBusy = false;
+            renderStatus();
+        }
+    }
+    $('export-repaired-button')?.addEventListener('click', exportRepairedWorkbook);
     $('repair-button').addEventListener('click', () => execute('repair'));
     $('retry-button').addEventListener('click', retryLoad);
-    $('example-button').addEventListener('click', () => execute('example'));
-    $('graph-file').addEventListener('change', event => { const file = event.target.files[0]; event.target.value = ''; if (file) execute('upload', file); });
     $('before-tab').addEventListener('click', () => setPhase('before')); $('after-tab').addEventListener('click', () => setPhase('after'));
-    document.addEventListener('dragover', event => { if ([...event.dataTransfer.types].includes('Files')) { event.preventDefault(); $('drop-area').classList.add('is-dragging'); } });
-    document.addEventListener('dragleave', event => { if (!event.relatedTarget) $('drop-area').classList.remove('is-dragging'); });
-    document.addEventListener('drop', event => { event.preventDefault(); $('drop-area').classList.remove('is-dragging'); const files = event.dataTransfer.files; if (files.length === 1) execute('upload', files[0]); else if (files.length > 1) feedback('Загрузите один граф за раз.'); });
     const initialReport = $('initial-report'), initialError = $('initial-error');
     if (initialReport || initialError) {
         lastLoad = {kind: 'upload', file: null};
@@ -312,7 +386,6 @@
         showLoadError('');
         $('status-title').textContent = 'Выберите граф для анализа';
         $('status-description').textContent = 'Загрузите файл или откройте шаблон на главной странице.';
-        $('model-name').textContent = 'Граф системы';
         $('loading-message').textContent = 'Выберите исходный граф';
     }
 })();

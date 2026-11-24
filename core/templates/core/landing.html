@@ -7,6 +7,8 @@
     <meta name="theme-color" content="#f2f2f2">
     <title>BIGVIZOV — Система анализа</title>
     <link rel="stylesheet" href="{% static 'core/css/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/operation_loading.css' %}">
+    <script defer src="{% static 'core/js/operation_loading.js' %}"></script>
     <script defer src="{% static 'core/js/landing.js' %}"></script>
 </head>
 <body>
@@ -19,6 +21,7 @@
         </section>
         <form id="upload-form" class="actions" aria-label="Импорт и запуск анализа" action="{% url 'analysis' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            <input type="hidden" name="match_existing_template" value="1">
             <div class="upload-panel">
                 <span class="upload-title">Импорт</span>
                 <label class="upload-target" for="model-file" id="upload-target">
@@ -32,7 +35,7 @@
                     <span id="upload-description" class="upload-description">Перетащите файл или нажмите для выбора</span>
                 </label>
             </div>
-            <button class="analyze-link" type="submit" id="choose-template"
+            <button class="analyze-link" type="submit" id="choose-template" disabled
                     data-analysis-url="{% url 'analysis' %}"
                     data-upload-url="{% url 'analyze-upload' %}">Запустить анализ</button>
             <p class="import-feedback" id="import-feedback" role="alert" hidden></p>
@@ -44,19 +47,60 @@
             <noscript><a href="{% url 'analysis' %}">Открыть анализатор</a></noscript>
     </main>
 
+
+    <!-- Дополнительные требования: одноразовое вложение к текущему анализу. -->
+    <div class="requirements-modal" id="requirements-modal" role="dialog" aria-modal="true"
+         aria-labelledby="requirements-modal-title" aria-describedby="requirements-modal-description" hidden>
+        <div class="requirements-dialog">
+            <button type="button" class="requirements-close" id="requirements-close"
+                    aria-label="Закрыть окно дополнительных требований">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                    <path d="M5 5l14 14M19 5L5 19" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h2 id="requirements-modal-title">Дополнительные требования к безопасности</h2>
+            <p class="requirements-description" id="requirements-modal-description">
+                Хотите приложить документы с дополнительными требованиями перед запуском анализа?
+            </p>
+            <label class="requirements-dropzone" id="requirements-dropzone" for="requirements-file">
+                <input id="requirements-file" type="file" name="additional_requirements" form="upload-form"
+                       accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                       multiple aria-describedby="requirements-file-hint requirements-format-hint">
+                <svg class="requirements-upload-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 21V5m-6 6 6-6 6 6M6 21v5a2 2 0 002 2h16a2 2 0 002-2v-5"/>
+                </svg>
+                <span class="requirements-drop-title" id="requirements-file-hint">Выбрать документы</span>
+                <span class="requirements-drop-description">или перетащить сюда</span>
+                <span class="requirements-drop-formats" id="requirements-format-hint">PDF, DOCX, TXT · до 5 файлов по 10 МБ</span>
+            </label>
+
+            <p class="requirements-modal-error" id="requirements-modal-error" role="alert" hidden></p>
+            <div class="requirements-actions">
+                <button type="button" class="requirements-skip" id="requirements-skip">Продолжить без документов</button>
+                <button type="button" class="requirements-confirm" id="requirements-confirm" disabled>
+                    Продолжить с документами
+                </button>
+            </div>
+        </div>
+    </div>
+
     <main class="landing page-screen normative-screen" id="normative-screen" aria-hidden="true" inert>
         <section class="intro" aria-label="Графика системы">
             <div class="art-crop" aria-hidden="true">
                 <img src="{% static 'core/img/landing-art.svg' %}" alt="" draggable="false">
             </div>
         </section>
-        <section class="normative-content">
-            <fieldset class="documents-panel">
-                <legend>Нормативные документы</legend>
-                <div class="documents-grid">
-                    {% for document in documents %}
-                        <a class="document-item" href="{% url 'download-normative' document.filename %}" download>
-                            <span class="pdf-icon" aria-hidden="true">
+        <section class="normative-content" aria-label="Нормативная база">
+            <fieldset class="documents-panel normative-panel">
+                <legend>Нормативная база</legend>
+                <div class="normative-columns">
+                    <section class="normative-original" aria-labelledby="normative-default-title">
+                        <h2 id="normative-default-title" class="normative-heading">Нормативные документы</h2>
+                        <div class="documents-grid">
+                            {% for document in documents %}
+                                <a class="document-item" href="{% url 'download-normative' document.filename %}" download>
+                                    <span class="pdf-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 40" fill="none">
                                     <path d="M4 1H21L29 9V39H4V1Z" stroke="currentColor" stroke-width="2" />
                                     <path d="M21 1V9H29" stroke="currentColor" stroke-width="2" />
@@ -64,11 +108,61 @@
                                     <text x="3" y="29.5" font-size="9" font-weight="bold" fill="#f2f2f2">PDF</text>
                                 </svg>
                             </span>
-                            <span class="document-name">{{ document.title }}</span>
-                        </a>
-                    {% empty %}
-                        <p class="empty-documents">Документы пока не добавлены.</p>
-                    {% endfor %}
+                                    <span class="document-name">{{ document.title }}</span>
+                                </a>
+                            {% empty %}
+                                <p class="empty-documents">Документы пока не добавлены.</p>
+                            {% endfor %}
+                        </div>
+                    </section>
+                    <section class="normative-import" aria-labelledby="imported-documents-title">
+                        <form class="normative-import-form" id="normative-import-form" action="{% url 'import-normative' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <button type="button" class="normative-import-button" id="import-pdf-button">Импортировать PDF</button>
+                            <label class="normative-dropzone" id="normative-dropzone" for="normative-pdf-file">
+                                <input type="file" id="normative-pdf-file" name="files" accept=".pdf,application/pdf" multiple required>
+                                <svg class="normative-upload-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M16 20V4m-5 5 5-5 5 5M5 21v6a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-6" />
+                                </svg>
+                                <span id="normative-drop-hint">Перетащите PDF сюда или нажмите для выбора</span>
+                                <span class="normative-drop-subtitle">До 10 файлов, по 20 МБ каждый</span>
+                            </label>
+                            <noscript><button class="normative-import-button normative-submit" type="submit">Загрузить выбранные файлы</button></noscript>
+                            <p class="normative-import-feedback" id="normative-import-feedback" role="status" aria-live="polite" hidden></p>
+                            {% for message in messages %}
+                                <p class="normative-server-feedback{% if message.tags == 'error' %} is-error{% endif %}" role="status">{{ message }}</p>
+                            {% endfor %}
+                        </form>
+                        <div class="imported-heading-row">
+                            <h2 id="imported-documents-title" class="normative-heading">Импортированные документы</h2>
+                            <span id="imported-count" class="imported-count" aria-label="Количество импортированных документов">{{ imported_documents|length }}</span>
+                        </div>
+                        <div class="imported-documents-list" id="imported-documents-list">
+                            {% for document in imported_documents %}
+                                <div class="imported-item-row" data-filename="{{ document.filename }}">
+                                    <a class="document-item imported-item" href="{% url 'download-imported' document.filename %}" download>
+                                        <span class="pdf-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 40" fill="none">
+                                        <path d="M4 1H21L29 9V39H4V1Z" stroke="currentColor" stroke-width="2" />
+                                        <path d="M21 1V9H29" stroke="currentColor" stroke-width="2" />
+                                        <rect x="1" y="20" width="25" height="13" fill="currentColor" />
+                                        <text x="3" y="29.5" font-size="9" font-weight="bold" fill="#f2f2f2">PDF</text>
+                                    </svg>
+                                </span>
+                                        <span class="document-name">{{ document.title }}</span>
+                                        <span class="imported-badge">импортирован</span>
+                                    </a>
+                                    <button type="button" class="imported-delete-button" data-filename="{{ document.filename }}" data-delete-url="{% url 'delete-imported-normative' document.filename %}" aria-label="Удалить {{ document.title }}">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M9 3.5h6l.8 1.5H20v2H4v-2h4.2L9 3.5Zm-1.1 4h8.2l-.7 11c-.1 1-.8 1.5-1.7 1.5H10.3c-.9 0-1.6-.5-1.7-1.5l-.7-11Zm3.1 2.8v6m4-6v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            {% empty %}
+                                <p class="imported-empty" id="imported-empty">Здесь появятся загруженные PDF-документы.</p>
+                            {% endfor %}
+                        </div>
+                    </section>
                 </div>
             </fieldset>
             <button type="button" class="back-button" id="close-normative">Назад</button>

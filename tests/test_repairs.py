@@ -240,7 +240,7 @@ def test_real_demo_pipeline_has_verified_joint_repair_and_keeps_baseline_immutab
     baseline = apply_profile(imported_model(html), ROOT / 'examples/demo_profile.json')
     saved_baseline = deepcopy(baseline)
     changed = comparison_model(baseline, xlsx, comparison)
-    experiment = json.loads((ROOT / 'examples/experiment_actions.json').read_text())
+    experiment = json.loads((ROOT / 'examples/experiment_actions.json').read_text(encoding="utf-8"))
     broken = apply_actions(changed, experiment['actions'], 'experiment')
     before = analyze(broken)
     assert before['summary'].get('FAIL') == 3

@@ -87,7 +87,13 @@ def test_custom_template_analyzes_its_own_graph_without_four_pc_demo(client, tmp
     assert state['analysis']['results'][0]['witness']['nodes'] == ['37:7', '37:20']
     assert len(state['graph']['nodes']) == 4
     assert not state['model']['mutable']
-    assert post(client, {'template': 'Произвольная система', 'repair': True}).status_code == 400
+    repaired = post(client, {'template': 'Произвольная система', 'repair': True})
+    assert repaired.status_code == 200
+    fixed = repaired.json()
+    assert fixed['repair']['status'] == 'VERIFIED_CANDIDATE'
+    assert fixed['states']['before']['analysis']['summary'] == {'FAIL': 1}
+    assert fixed['states']['repaired']['analysis']['summary'] == {'PASS': 1}
+    assert fixed['repair']['objective_value'] == [1, 1]
 
 
 def test_shipped_twenty_pc_template_is_not_replaced_by_four_pc_experiment(client):
@@ -101,6 +107,20 @@ def test_shipped_twenty_pc_template_is_not_replaced_by_four_pc_experiment(client
     assert state['graph']['summary']['cluster_count'] == 25
     assert not report.get('scenario') and not report.get('repair')
     assert report['profile_applied'] == 'automatic'
+    assert report['repair_capability']['type'] == 'mandate_flow'
+
+    repaired = post(client, {'template': 'Шаблон №2', 'repair': True})
+    assert repaired.status_code == 200, repaired.content[:300]
+    outcome = repaired.json()
+    assert outcome['repair']['status'] == 'VERIFIED_CANDIDATE'
+    assert outcome['repair']['checked_sets'] == 1  # No combinatorial search.
+    assert outcome['repair']['objective_value'] == [73, 73]
+    assert outcome['states']['before']['analysis']['summary'] == {'PASS': 978, 'FAIL': 73, 'UNKNOWN': 1}
+    assert outcome['states']['repaired']['analysis']['summary'] == {'PASS': 1051, 'UNKNOWN': 1}
+    assert outcome['states']['repaired']['graph']['summary']['node_count'] == 1214
+    assert outcome['states']['repaired']['graph']['summary']['structural_edges'] == 6595
+    assert 'source_graph' not in outcome['states']['before'].get('model', {})
+    assert 'source_graph' not in outcome['states']['repaired'].get('model', {})
 
 
 @pytest.mark.parametrize('name', ['../Шаблон №1', '/tmp', '..', '', 42, None])

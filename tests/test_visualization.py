@@ -23,7 +23,7 @@ def models():
     xlsx = load_xlsx(ROOT/'data/sources/Четыре_конфигурации_ПК_уязвим.xlsx', 'changed')
     baseline = apply_profile(imported_model(html), ROOT/'examples/demo_profile.json')
     changed = comparison_model(baseline, xlsx, compare_sources(html, xlsx, True, as_states=True))
-    actions = json.loads((ROOT/'examples/experiment_actions.json').read_text())['actions']
+    actions = json.loads((ROOT/'examples/experiment_actions.json').read_text(encoding="utf-8"))['actions']
     experiment = apply_actions(changed, actions, new_state='experiment')
     return baseline, changed, experiment
 

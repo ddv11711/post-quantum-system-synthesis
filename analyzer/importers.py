@@ -202,7 +202,9 @@ def load_xlsx(path: str | Path, state: str = "xlsx", *,
     try:
         # Workbook names are presentation details, not a semantic constraint.
         if len(workbook.sheetnames) != 1:
-            raise ImportFormatError("Ожидается Excel с одним листом конфигурации.")
+            from .security_workbook import EXTENSION_SHEETS
+            if workbook.sheetnames[1:] != list(EXTENSION_SHEETS):
+                raise ImportFormatError("Ожидается Excel с одним листом конфигурации или поддерживаемым расширением безопасности.")
         sheet = workbook.active
         try:
             actual_rows = read_bounded_rows(sheet, max_rows=10001, max_columns=5)

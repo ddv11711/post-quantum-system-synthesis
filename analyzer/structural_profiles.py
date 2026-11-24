@@ -228,6 +228,13 @@ def compile_mandate_flows(graph):
         identifier = "mandate-flow:" + digest + ":" + str(repetitions[digest])
         start, target = edge["source"], edge["target"]
         evidence = _evidence(edge, f"source_graph.edges[{index}]", "explicit profile: this directed arrow is a possible data transfer; no human author or access right is inferred")
+        # The scenario denotes exactly this one enumerated direct flow. Its
+        # transition domain is closed; after disabling it, absence is provable
+        # rather than UNKNOWN. This does not close unrelated / unlabeled flows.
+        model["completeness"].append({"predicate": "transitions",
+                                     "args_prefix": [start, "write", identifier, "flow"],
+                                     "complete": True,
+                                     "provenance": deepcopy(evidence)})
         model["facts"].append(fact("transition_enabled", [identifier], "TRUE", evidence))
         model["transitions"].append({"id": identifier, "source": start, "target": target, "subject": start,
                                      "operation": "write", "kind": "flow", "scenario": identifier, "value": "TRUE",

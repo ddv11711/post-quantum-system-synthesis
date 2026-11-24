@@ -39,3 +39,17 @@ db.sqlite3
 .idea/
 .DS_Store
 Thumbs.db
+# Uploaded normative PDFs
+documents/imported/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Local test artifacts
+.coverage
+htmlcov/
+
+# Local exports
+exports/

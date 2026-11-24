@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def example():
-    return json.loads((ROOT / 'examples/portable/fls_clusters.json').read_text())
+    return json.loads((ROOT / 'examples/portable/fls_clusters.json').read_text(encoding="utf-8"))
 
 
 @pytest.fixture

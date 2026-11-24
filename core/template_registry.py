@@ -72,3 +72,66 @@ def list_templates():
             templates.append({"name": folder.name, "pc_count": 0, "pcs": [],
                               "entity_count": 0, "unique_entities": [], "valid": False})
     return templates
+
+
+def find_matching_template_for_workbook(upload):
+    """Find an existing *identical-in-data* template workbook (no fuzzy match).
+
+    Only the first-column header alias (ПК/Кластер) and column order can differ.
+    All five columns, all rows and their original values must otherwise match.
+    In particular a changed ACL, component or connection will never silently
+    inherit a template's educational security assumptions.
+    """
+    from openpyxl.utils.exceptions import InvalidFileException
+    from zipfile import ZipFile
+
+    # Apply the same XLSX archive limit as the regular importer before parsing.
+    try:
+        upload.seek(0)
+        with ZipFile(upload) as archive:
+            members = archive.infolist()
+            if len(members) > 2048 or sum(m.file_size for m in members) > 32 * 1024 * 1024:
+                return None
+    except (OSError, BadZipFile, ValueError):
+        return None
+    finally:
+        upload.seek(0)
+
+    def canonical_rows(source):
+        workbook = load_workbook(source, read_only=True, data_only=False)
+        try:
+            if len(workbook.sheetnames) != 1:
+                return None
+            rows = read_bounded_rows(workbook.active, max_rows=10001, max_columns=5)
+            if not rows:
+                return None
+            order = resolve_columns([cell.value for cell in rows[0]])
+            return tuple(
+                tuple(row[index].value if index < len(row) else None for index in order)
+                for row in rows[1:]
+            )
+        finally:
+            workbook.close()
+
+    try:
+        upload.seek(0)
+        source_rows = canonical_rows(upload)
+    except (OSError, ValueError, KeyError, TypeError, BadZipFile, InvalidFileException):
+        return None
+    finally:
+        upload.seek(0)
+
+    if source_rows is None:
+        return None
+    if not TEMPLATE_ROOT.is_dir():
+        return None
+    for folder in sorted(TEMPLATE_ROOT.iterdir(), key=lambda p: p.name.casefold()):
+        files = template_files(folder)
+        if files is None:
+            continue
+        try:
+            if source_rows == canonical_rows(files['.xlsx']):
+                return folder
+        except (OSError, ValueError, KeyError, TypeError, BadZipFile, InvalidFileException):
+            continue
+    return None

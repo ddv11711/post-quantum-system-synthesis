@@ -33,7 +33,7 @@ def dimensions(content, ref):
 
 @pytest.mark.parametrize('ref', [None, 'A1:A1', 'A1:XFD1048576'])
 def test_portable_import_uses_actual_rows_even_with_missing_or_stale_dimensions(tmp_path, ref):
-    original = json.loads((Path(__file__).resolve().parents[1] / 'examples/portable/fls_clusters.json').read_text())
+    original = json.loads((Path(__file__).resolve().parents[1] / 'examples/portable/fls_clusters.json').read_text(encoding="utf-8"))
     path = tmp_path / 'dimensions.xlsx'
     path.write_bytes(dimensions(portable_workbook(original), ref))
     actual = load_portable(load_portable_workbook(path))

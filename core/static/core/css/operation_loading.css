@@ -1,0 +1,113 @@
+/* Shared monochrome, minimal loading state. */
+.analysis-loading-overlay[hidden] {
+    display: none !important;
+}
+
+.analysis-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    padding: 24px;
+    background: rgba(239, 239, 239, .62);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    animation: analysis-loading-appear .2s ease-out both;
+}
+
+.analysis-loading-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    box-sizing: border-box;
+    width: min(100%, 322px);
+    min-height: 85px;
+    padding: 22px 24px;
+    background: #f8f8f8;
+    color: #222;
+    border: 1px solid #d2d2d2;
+    border-radius: 21px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, .075);
+    font: inherit;
+}
+
+.analysis-loading-ring {
+    display: block;
+    flex: 0 0 25px;
+    width: 25px;
+    height: 25px;
+    box-sizing: border-box;
+    border: 2px solid #dbdbdb;
+    border-top-color: #212121;
+    border-radius: 50%;
+    animation: analysis-loading-rotate .75s linear infinite;
+}
+
+.analysis-loading-label {
+    font-size: 14px;
+    font-weight: 550;
+    line-height: 1.4;
+    letter-spacing: -.01em;
+}
+
+@keyframes analysis-loading-rotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes analysis-loading-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analysis-loading-overlay,
+    .analysis-loading-ring { animation: none; }
+}
+
+/* Compact in-button progress for Excel export; no modal/overlay. */
+.analysis-export-button .analysis-export-button-spinner {
+    display: none;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    opacity: .8;
+    animation: analysis-loading-rotate .8s linear infinite;
+}
+
+.analysis-export-button.is-exporting {
+    cursor: progress;
+    opacity: .78;
+    pointer-events: none;
+}
+
+.analysis-export-button.is-exporting .analysis-export-button-spinner {
+    display: inline-block;
+}
+
+.analysis-export-button.is-exporting > svg {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analysis-export-button .analysis-export-button-spinner {
+        animation: none;
+        border-right-color: currentColor;
+    }
+}
+
+/* Monochrome verification spinner in the status banner. */
+.system-status[data-state="loading"] .status-symbol {
+    background: #ededed;
+    color: #202020;
+}
+.system-status[data-state="loading"] .status-symbol .spinner {
+    border-color: #d5d5d5;
+    border-top-color: #171717;
+}

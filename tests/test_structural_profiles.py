@@ -51,7 +51,12 @@ def test_compile_directional_transfer_policy_without_acl_types_or_human_attribut
     assert "security_label" not in model["nodes"]["rank/high"]
     assert model["nodes"]["source:α"]["security_label"] == {"level": "Закрытый", "categories": []}
     assert {f["predicate"] for f in model["facts"]} == {"present", "transition_enabled"}
-    assert not model["completeness"] and not model["mutable"]
+    # Each separately enumerated flow has a complete, isolated transition
+    # context. This does NOT close unknown/unlabelled flows or grant edits.
+    assert len(model["completeness"]) == len(model["transitions"]) == 2
+    assert all(scope["predicate"] == "transitions" and scope["complete"] is True
+               for scope in model["completeness"])
+    assert not model["mutable"]
     assert not model.get("fls_channels") and not model.get("action_catalog")
     assert len({t["scenario"] for t in model["transitions"]}) == 2
     result = analyze(model)

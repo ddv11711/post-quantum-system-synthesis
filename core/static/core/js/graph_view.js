@@ -59,7 +59,7 @@
         const states = report.states || {};
         const beforeName = states[options.beforeState] && options.beforeState !== 'repaired' ? options.beforeState : ['experiment', 'changed', 'before', 'uploaded', 'imported', 'baseline'].find(k => states[k]) || Object.keys(states).find(k => k !== 'repaired');
         const beforeState = states[beforeName];
-        if (!beforeState) { container.append(text('p', 'Нет состояния для построения графа.', 'sg-note')); return {setPhase() { return 'before'; }, focusNodes() {}, focusProblem() {}, getView() { return 'all'; }, setView() { return 'all'; }, getViewState() { return {view: 'all'}; }, destroy() { container.replaceChildren(); }}; }
+        if (!beforeState) { container.append(text('p', 'Нет состояния для построения графа.', 'sg-note')); return {setPhase() { return 'before'; }, focusNodes() {}, focusFinding() {}, focusProblem() {}, getView() { return 'all'; }, setView() { return 'all'; }, getViewState() { return {view: 'all'}; }, destroy() { container.replaceChildren(); }}; }
         const before = beforeState.graph || fallback(beforeState), afterState = states.repaired, after = afterState?.graph || (afterState ? fallback(afterState) : null);
         const allNodes = new Map();
         for (const graph of [before, ...(after ? [after] : [])]) for (const node of graph.nodes || []) allNodes.set(node.key, node);
@@ -268,8 +268,43 @@
             const points = [...new Set(keys)].map(k => layout.positions.get(k)).filter(Boolean); if (!points.length) return;
             const xs = points.map(p => p.x), ys = points.map(p => p.y);
             let w = Math.max(350, Math.max(...xs) - Math.min(...xs) + 250), h = Math.max(350, Math.max(...ys) - Math.min(...ys) + 250);
-            const ratio = layout.width / layout.height; if (w / h < ratio) w = h * ratio; else h = w / ratio;
+            // A tall multi-PC layout may be many times narrower than the on-screen
+            // SVG. Use the actual viewport ratio, not the full graph's ratio:
+            // otherwise zooming one node leaves a huge empty letterboxed area.
+            const visiblePane = panes.find(p => !p.box.hidden) || panes[0];
+            const rect = visiblePane?.svg.getBoundingClientRect();
+            const ratio = rect?.width > 0 && rect?.height > 0
+                ? rect.width / rect.height : layout.width / layout.height;
+            if (w / h < ratio) w = h * ratio; else h = w / ratio;
             changeView({x: (Math.max(...xs) + Math.min(...xs) - w) / 2, y: (Math.max(...ys) + Math.min(...ys) - h) / 2, width: w, height: h});
+        }
+        function focusFinding(finding) {
+            if (!finding) return;
+            // Keep the original 4-PC behavior for forbidden access: show the
+            // proven offender rather than spanning the entire witness path.
+            if (finding.offender && allNodes.has(finding.offender)) {
+                focusKeys([finding.offender]);
+                return;
+            }
+            const source = finding.source || finding.subject;
+            const target = finding.object;
+            const sourceNode = allNodes.get(source), targetNode = allNodes.get(target);
+            if (finding.checker === 'label_flow' && targetNode) {
+                // A flow between different PCs often spans thousands of screen
+                // units. Focusing both endpoints would recreate the full view.
+                // Show the receiving end, where the red violating flow arrives.
+                if (sourceNode && clusterOf(sourceNode) !== clusterOf(targetNode)) {
+                    if (selectedView !== 'all') setView('all');
+                    focusKeys([target]);
+                } else {
+                    focusKeys(sourceNode ? [source, target] : [target]);
+                }
+                inspect(target, false);
+                return;
+            }
+            const keys = [finding.offender, ...(finding.causes || []), finding.object,
+                finding.subject, finding.source].filter(Boolean);
+            focusKeys(keys);
         }
         function focusProblem() {
             const currentFailures = compact && activePhase === 'after' ? (after.findings || []).filter(f => f.status === 'FAIL') : failures;
@@ -415,7 +450,7 @@
         const escape = e => { if (e.key === 'Escape') for (const expanded of root.querySelectorAll('.sg-expanded')) { expanded.classList.remove('sg-expanded'); const b = [...expanded.querySelectorAll('button')].find(x => x.textContent === 'Свернуть'); if (b) b.textContent = 'На весь экран'; } };
         document.addEventListener('keydown', escape); cleanups.push(() => document.removeEventListener('keydown', escape));
         setView(selectedView);
-        return {setPhase, focusNodes: focusKeys, focusProblem, getView: () => selectedView, setView, getViewState, destroy() { for (const cleanup of cleanups) cleanup(); root.remove(); }};
+        return {setPhase, focusNodes: focusKeys, focusFinding, focusProblem, getView: () => selectedView, setView, getViewState, destroy() { for (const cleanup of cleanups) cleanup(); root.remove(); }};
     }
     window.SecurityGraphComparison = {mount};
 })();
