@@ -28,7 +28,7 @@ button { font: inherit; }
     max-width: none;
 
     left: 50%;
-    top: 50px;
+    top: 68px;
 
     transform-origin: center center;
 
@@ -108,7 +108,7 @@ button { font: inherit; }
     max-width: none;
 
     left: 50%;
-    top: 50px;
+    top: 68px;
 
     transform-origin: center center;
 
@@ -132,7 +132,7 @@ button { font: inherit; }
 #templates-screen { z-index: 3; background: #f2f2f2; }
 #templates-screen .art-crop img {
     position: absolute; width: 433px; height: 433px; max-width: none;
-    left: 50%; top: 50px; transform-origin: center;
+    left: 50%; top: 68px; transform-origin: center;
     animation: figureFloat 5s ease-in-out infinite;
 }
 .secondary-links .templates-open {
@@ -174,7 +174,7 @@ button { font: inherit; }
   #templates-screen .art-crop img {
     width: min(240px, calc(34vh - 24px));
     height: min(240px, calc(34vh - 24px));
-    top: 12px;
+    top: 22px;
   }
   .templates-content { width: calc(100% - 36px); }
   .templates-panel { padding: 18px 13px 24px; }
@@ -275,9 +275,9 @@ button { font: inherit; }
 }
 
 /* Keep the sculpture centered even before the floating animation starts. */
-#normative-screen .art-crop img { width: 385px; height: 385px; top: 13px; transform: translateX(-50%); }
+#normative-screen .art-crop img { width: 385px; height: 385px; top: 28px; transform: translateX(-50%); }
 @media (max-width: 600px) {
-  #normative-screen .art-crop img { width: min(240px, calc(34vh - 24px)); height: min(240px, calc(34vh - 24px)); top: 12px; }
+  #normative-screen .art-crop img { width: min(240px, calc(34vh - 24px)); height: min(240px, calc(34vh - 24px)); top: 22px; }
 }
 
 
@@ -340,3 +340,164 @@ body.requirements-modal-open { overflow: hidden; }
     .requirements-actions button { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .requirements-modal, .requirements-dialog { animation: none; } }
+
+/* Responsive layout: desktop / laptop / tablet / phone.
+   Overrides only presentation; upload, template and modal logic stays intact. */
+html { -webkit-text-size-adjust: 100%; }
+body { min-width: 0; }
+.screen-container { min-width: 0; }
+.landing, .actions, .normative-content, .templates-content,
+.documents-panel, .templates-panel, .template-grid, .normative-columns,
+.normative-original, .normative-import { min-width: 0; }
+.document-item, .template-card, .imported-item-row, .requirements-dialog { max-width: 100%; }
+.document-name, .template-card-details, .requirements-description { overflow-wrap: anywhere; }
+
+@media (max-width: 1280px) {
+    #normative-screen .normative-content { width: min(1100px, calc(100% - 48px)); }
+    .normative-columns { gap: 20px; }
+    .templates-content { width: min(1040px, calc(100% - 48px)); }
+}
+
+@media (max-width: 900px) {
+    .intro { height: clamp(230px, 34vh, 360px); min-height: 0; }
+    #home-screen .art-crop img,
+    #normative-screen .art-crop img,
+    #templates-screen .art-crop img {
+        width: clamp(245px, 34vh, 330px);
+        height: clamp(245px, 34vh, 330px);
+        top: 22px;
+    }
+    #normative-screen .intro { height: clamp(215px, 31vh, 330px); min-height: 0; }
+    .actions, .normative-content, .templates-content { width: calc(100% - 44px); }
+    #normative-screen .normative-content { width: calc(100% - 44px); }
+    .normative-columns { grid-template-columns: minmax(0, 1fr); }
+    .normative-import { border-left: 0; border-top: 1px solid #bcbcbc; padding: 24px 0 0; }
+    .normative-original { padding: 4px 0; }
+    .normative-import-form { max-width: 100%; }
+    .templates-panel { padding: 24px; }
+    .template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .template-card { min-height: 240px; padding: 19px; }
+    .template-card:has(input:checked) { padding: 18px; }
+}
+
+@media (max-width: 600px) {
+    .landing { min-height: 100svh; }
+    .intro { height: clamp(190px, 31svh, 270px); min-height: 0; }
+    #normative-screen .intro { height: clamp(178px, 28svh, 245px); min-height: 0; }
+    #home-screen .art-crop img,
+    #normative-screen .art-crop img,
+    #templates-screen .art-crop img {
+        width: clamp(190px, 27svh, 235px);
+        height: clamp(190px, 27svh, 235px);
+        top: 18px;
+    }
+    .actions, .normative-content, .templates-content,
+    #normative-screen .normative-content { width: calc(100% - 28px); }
+    .upload-panel { height: 142px; }
+    .upload-target { padding: 16px 12px; }
+    .upload-title { max-width: calc(100% - 20px); font-size: clamp(14px, 4vw, 17px); }
+    #file-hint { font-size: 14px; }
+    .upload-description { font-size: 11px; line-height: 1.45; }
+    .analyze-link { width: min(100%, 340px); min-height: 48px; margin-top: 25px; font-size: 16px; }
+    .secondary-links { margin: 22px 0 26px; gap: 9px; }
+    .secondary-links > button, .secondary-links > a { min-height: 42px; }
+    .templates-panel, #normative-screen .normative-panel { padding: 18px 13px 20px; }
+    .templates-panel legend, #normative-screen .normative-panel legend {
+        max-width: calc(100vw - 64px); font-size: 16px; white-space: normal;
+        text-align: center; overflow-wrap: anywhere;
+    }
+    .template-grid { grid-template-columns: 1fr; gap: 12px; }
+    .template-card { min-height: 0; padding: 17px; }
+    .template-card:has(input:checked) { padding: 16px; }
+    .template-card-header { margin-bottom: 12px; }
+    .template-actions { flex-direction: column; align-items: stretch; }
+    .template-actions .back-button, .template-actions .template-run { width: 100%; min-width: 0; }
+    .documents-grid { grid-template-columns: 1fr; gap: 13px; }
+    .documents-panel { min-height: 0; }
+    .normative-heading { margin-bottom: 17px; }
+    .normative-dropzone { min-height: 116px; }
+    .imported-item { gap: 8px; }
+    .imported-badge { display: none; }
+    .back-button { width: min(100%, 340px); margin-top: 24px; }
+    .requirements-modal { padding: 12px; padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    .requirements-dialog { width: 100%; max-height: calc(100dvh - 24px); padding: 31px 19px 20px; }
+    .requirements-dialog h2 { padding-right: 24px; font-size: clamp(19px, 5.5vw, 25px); }
+    .requirements-description { font-size: 13px; }
+    .requirements-dropzone { min-height: 126px; padding: 15px 12px; }
+    .requirements-drop-title { font-size: 15px; }
+    .requirements-actions { gap: 9px; }
+    .requirements-actions button { min-height: 46px; }
+}
+
+@media (max-width: 380px) {
+    .actions, .normative-content, .templates-content,
+    #normative-screen .normative-content { width: calc(100% - 22px); }
+    .templates-panel, #normative-screen .normative-panel { padding-left: 10px; padding-right: 10px; }
+    .secondary-links .templates-open, .secondary-links .normative-open { font-size: 12px; padding: 9px 12px; }
+    .requirements-dialog { padding-left: 15px; padding-right: 15px; }
+}
+
+@media (max-height: 650px) and (orientation: landscape) {
+    .intro, #normative-screen .intro { height: 150px; min-height: 0; }
+    #home-screen .art-crop img,
+    #normative-screen .art-crop img,
+    #templates-screen .art-crop img { width: 170px; height: 170px; top: 8px; }
+    .requirements-modal { align-items: flex-start; overflow-y: auto; }
+    .requirements-dialog { max-height: none; margin: auto 0; }
+}
+
+
+/* Floating sculpture: reserve space for the entire animation on every screen.
+   This override is placed LAST so older fixed top / size rules cannot clip it. */
+#home-screen .intro,
+#templates-screen .intro {
+    height: clamp(255px, 48svh, 525px);
+    min-height: 0;
+    max-height: none;
+}
+#normative-screen .intro {
+    height: clamp(232px, 42svh, 455px);
+    min-height: 0;
+    max-height: none;
+}
+#home-screen .art-crop img,
+#templates-screen .art-crop img {
+    width: clamp(186px, calc(48svh - 112px), 405px);
+    height: auto;
+    aspect-ratio: 1;
+    top: 64px;
+}
+#normative-screen .art-crop img {
+    width: clamp(165px, calc(42svh - 99px), 340px);
+    height: auto;
+    aspect-ratio: 1;
+    top: 56px;
+}
+@media (max-width: 600px) {
+    #home-screen .intro,
+    #templates-screen .intro {
+        height: clamp(210px, 34svh, 306px);
+    }
+    #normative-screen .intro {
+        height: clamp(207px, 32svh, 292px);
+    }
+    #home-screen .art-crop img,
+    #templates-screen .art-crop img {
+        width: clamp(150px, calc(34svh - 84px), 202px);
+        height: auto;
+        top: 44px;
+    }
+    #normative-screen .art-crop img {
+        width: clamp(148px, calc(32svh - 82px), 192px);
+        height: auto;
+        top: 44px;
+    }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+    #home-screen .intro,
+    #templates-screen .intro,
+    #normative-screen .intro { height: 178px; }
+    #home-screen .art-crop img,
+    #normative-screen .art-crop img,
+    #templates-screen .art-crop img { width: 118px; height: 118px; top: 40px; }
+}

@@ -177,10 +177,130 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
     .analysis-home-link, .primary-button, .finding-card, .sg-compact .sg-button { transition: none; }
 }
 
-/* Optional repaired workbook download; keeps the established monochrome design. */
-.analysis-export-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-.analysis-export-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 19px; border: 1px solid #999; border-radius: 999px; background: transparent; color: #202020; font-size: 13px; font-weight: 500; white-space: nowrap; transition: background .2s, border-color .2s; }
-.analysis-export-button:hover:not(:disabled) { background: #e7e7e7; border-color: #555; }
-.analysis-export-button:disabled { opacity: .55; cursor: wait; }
-.analysis-export-button[hidden] { display: none !important; }
-@media (max-width: 800px) { .analysis-export-actions { width: 100%; justify-content: stretch; } .analysis-export-actions > button { flex: 1 1 100%; } }
+/* Responsive analysis workspace: no backend or graph-behaviour changes. */
+html { -webkit-text-size-adjust: 100%; }
+body { min-width: 0; }
+.app, .app main, .analysis-workspace, .graph-card, .findings-panel,
+.graph-header, .status-copy, .analysis-export-actions, .sg-comparison,
+.sg-compact .sg-pane { min-width: 0; }
+.status-copy h2, .status-copy p, .finding-content,
+.graph-meta, .sg-inspector { overflow-wrap: anywhere; }
+.analysis-export-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.analysis-export-actions button { max-width: 100%; }
+.sg-compact .sg-global-controls { flex-wrap: wrap; }
+.sg-compact .sg-global-controls input { min-width: 0; flex: 1 1 190px; }
+.sg-compact .sg-pane-tools { flex-wrap: wrap; }
+.sg-compact .sg-inspector { overflow-wrap: anywhere; }
+
+@media (min-width: 1600px) {
+    .app { max-width: 1680px; padding-left: 48px; padding-right: 48px; }
+    .analysis-workspace { grid-template-columns: minmax(0, 1fr) minmax(320px, 350px); gap: 24px; }
+}
+
+@media (max-width: 1199px) and (min-width: 981px) {
+    .app { padding-left: 24px; padding-right: 24px; }
+    .analysis-workspace { grid-template-columns: minmax(0, 1fr) 285px; gap: 14px; }
+    .graph-header { flex-wrap: wrap; align-items: flex-start; }
+    .phase-switch { max-width: 100%; }
+    .findings-panel { padding: 18px 15px; }
+    .system-status { gap: 12px; padding: 19px; }
+    .analysis-export-actions { justify-content: flex-end; }
+    .analysis-export-actions button { white-space: normal; }
+}
+
+@media (max-width: 980px) {
+    .app { padding-left: 24px; padding-right: 24px; }
+    .analysis-workspace { grid-template-columns: minmax(0, 1fr); }
+    .system-status { flex-wrap: wrap; }
+    .analysis-export-actions { flex: 1 1 100%; justify-content: flex-end; }
+    .analysis-workspace .findings-panel { padding: 21px; }
+    .findings-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; }
+    .sg-compact .sg-canvas { height: clamp(410px, 55vh, 640px); min-height: 0; }
+}
+
+@media (max-width: 650px) {
+    .app { padding: 0 14px max(26px, env(safe-area-inset-bottom)); }
+    .analysis-page-heading { min-height: 0; padding: 22px 0 18px; flex-wrap: wrap; align-items: flex-start; }
+    .analysis-page-heading h1 { font-size: clamp(23px, 6.4vw, 31px); }
+    .analysis-home-link { min-height: 42px; }
+    .system-status { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px 12px; padding: 16px 14px; }
+    .status-symbol { width: 40px; height: 40px; }
+    .status-copy { flex: none; }
+    .status-copy h2 { font-size: 16px; }
+    .status-copy p { line-height: 1.5; }
+    .analysis-export-actions { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 9px; margin-top: 4px; }
+    .analysis-export-actions button, .analysis-export-actions .primary-button { width: 100%; min-height: 46px; margin: 0; justify-content: center; white-space: normal; }
+    .analysis-workspace { gap: 15px; }
+    .graph-header { padding: 16px 13px; }
+    .graph-meta { line-height: 1.5; }
+    .phase-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; min-width: 0; }
+    .phase-switch button { min-width: 0; padding: 8px 5px; white-space: normal; line-height: 1.25; }
+    .graph-footer { padding: 12px 13px; }
+    .graph-legend { column-gap: 12px; row-gap: 9px; }
+    .graph-tip { display: none; }
+    .findings-panel { padding: 16px 13px !important; }
+    .findings-list { grid-template-columns: minmax(0, 1fr); max-height: none; }
+    .finding-card { min-width: 0; }
+    .sg-compact .sg-global-controls { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 9px; }
+    .sg-compact .sg-global-controls input { flex: 1 1 100%; width: 100%; max-width: none; min-width: 0; min-height: 44px; font-size: 16px; }
+    .sg-compact .sg-global-controls > .sg-button { flex: 1 1 auto; min-height: 42px; margin-right: 0; white-space: normal; }
+    .sg-compact .sg-global-controls > .sg-button:nth-child(2) { margin-right: 0; }
+    .sg-compact .sg-pane-tools .sg-button { min-height: 40px; }
+    .sg-compact .sg-canvas { height: clamp(310px, 48svh, 470px); min-height: 0; touch-action: none; }
+    .sg-compact .sg-inspector { padding: 12px; }
+    .sg-inspector-columns { grid-template-columns: minmax(0, 1fr); }
+    .sg-expanded { inset: max(4px, env(safe-area-inset-top)) 4px max(4px, env(safe-area-inset-bottom)) !important; }
+    .sg-compact .sg-expanded .sg-canvas { height: 100%; min-height: 0; }
+}
+
+@media (max-width: 380px) {
+    .app { padding-left: 10px; padding-right: 10px; }
+    .analysis-page-heading { gap: 12px; }
+    .analysis-page-heading h1 { font-size: 22px; }
+    .analysis-home-link { padding-left: 12px; padding-right: 12px; }
+    .system-status { padding: 13px 11px; }
+    .graph-header { padding-left: 11px; padding-right: 11px; }
+    .sg-compact .sg-canvas { height: 300px; }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+    .sg-compact .sg-canvas { height: max(260px, 65vh); min-height: 0; }
+    .sg-expanded .sg-canvas { height: 100%; }
+}
+
+
+/* Mobile compact sizing (phones only; graph remains interactive). */
+@media (max-width: 650px) {
+    .app { padding-left: 11px; padding-right: 11px; }
+    .analysis-page-heading { padding-top: 15px; padding-bottom: 12px; gap: 8px; }
+    .analysis-page-heading h1 { font-size: clamp(20px, 5.5vw, 25px); }
+    .analysis-page-eyebrow { margin-bottom: 8px; }
+    .analysis-home-link { min-height: 40px; padding: 8px 11px; font-size: 11px; }
+    .system-status { padding: 12px; gap: 8px 10px; margin-bottom: 11px; grid-template-columns: 34px minmax(0, 1fr); }
+    .status-symbol { width: 34px; height: 34px; }
+    .status-copy h2 { font-size: 14px; }
+    .status-copy p { font-size: 11px; line-height: 1.4; }
+    .analysis-export-actions { gap: 7px; }
+    .analysis-export-actions button, .analysis-export-actions .primary-button { min-height: 44px; padding-top: 9px; padding-bottom: 9px; font-size: 12px; }
+    .analysis-workspace { gap: 10px; }
+    .graph-header { padding: 12px; gap: 10px; }
+    .graph-header h2, .findings-heading h2 { font-size: 16px; }
+    .graph-meta { font-size: 11px; }
+    .phase-switch button { font-size: 11px; padding: 7px 5px; }
+    .graph-footer { padding: 9px 11px; }
+    .graph-legend { gap: 7px 10px; font-size: 11px; }
+    .analysis-workspace .findings-panel, .findings-panel { padding: 12px !important; }
+    .finding-card { padding: 11px; }
+    .finding-content strong { font-size: 12px; }
+    .finding-content > span { font-size: 11px; }
+    .sg-compact .sg-global-controls { padding: 8px; gap: 6px; }
+    .sg-compact .sg-global-controls input { min-height: 42px; font-size: 16px; }
+    .sg-compact .sg-global-controls > .sg-button { min-height: 40px; font-size: 11px; }
+    .sg-compact .sg-pane-tools .sg-button { min-height: 40px; font-size: 11px; }
+    .sg-compact .sg-canvas { height: clamp(290px, 42svh, 400px); }
+    .sg-compact .sg-inspector { padding: 10px; }
+}
+@media (max-width: 380px) {
+    .app { padding-left: 9px; padding-right: 9px; }
+    .analysis-page-heading h1 { font-size: 20px; }
+}
